@@ -1,0 +1,80 @@
+{
+  "meta": {
+    "name": "DateDrop Background Doodle Art",
+    "version": "1.0",
+    "purpose": "Background image for DateDrop invitation app — neo-brutalist doodle style",
+    "targetDimensions": "1920x1080 (landscape), tileable optional"
+  },
+  "prompt": {
+    "summary": "A hand-drawn doodle art pattern on a clean white background, featuring scattered dating and date-night related illustrations in a playful neo-brutalist sketch style with thick black ink outlines and soft pastel accent fills.",
+    "style": {
+      "artStyle": "doodle, hand-drawn, sketch, line art, illustration",
+      "lineWork": "thick bold black ink outlines, slightly uneven hand-drawn feel, confident strokes",
+      "fillStyle": "minimal flat pastel color fills — soft pink (#fce7f3), mint green (#dcfce7), baby blue (#e0f2fe), pale yellow (#fef9c3), light purple (#f3e8ff), peach (#ffedd5)",
+      "background": "pure white (#FFFFFF) or very light warm white (#FAFAF9)",
+      "mood": "playful, romantic, casual, fun, inviting, youthful",
+      "influences": "neo-brutalism, sticker art, bullet journal doodles, Memphis design, Keith Haring energy"
+    },
+    "elements": [
+      "heart with a small arrow through it",
+      "coffee cup with steam swirls",
+      "slice of pizza with melting cheese",
+      "movie clapperboard",
+      "bicycle with a basket of flowers",
+      "bowling pin and ball",
+      "camera with a flash burst",
+      "music notes floating out of a speaker",
+      "ice cream cone with a cherry on top",
+      "moon and stars",
+      "polaroid photo frame",
+      "plate with fork and knife",
+      "wine glass clinking",
+      "picnic blanket with a basket",
+      "small potted plant / succulent",
+      "speech bubble with a heart inside",
+      "wrapped gift box with ribbon",
+      "calendar page with a heart circled",
+      "balloons (cluster of 3)",
+      "diamond ring sparkline",
+      "confetti dots and squiggles scattered throughout",
+      "small stars and sparkle shapes",
+      "curved dotted lines connecting elements",
+      "tiny abstract squiggles and marks for texture"
+    ],
+    "layoutGuidelines": {
+      "composition": "scattered pattern, evenly distributed across the canvas, no single focal point — designed as a repeatable background texture",
+      "density": "medium density — enough white space between doodles so it feels airy, not cluttered",
+      "scale": "each doodle element roughly 60-120px in the final 1920x1080 canvas",
+      "rotation": "vary rotation slightly on each element (5-15 degrees) for organic feel",
+      "spacing": "minimum 40px gap between any two elements",
+      "edges": "elements can bleed off edges for a seamless pattern feel"
+    },
+    "colorPalette": {
+      "outlines": "#111111 (near-black)",
+      "pastelPink": "#fce7f3",
+      "pastelGreen": "#dcfce7",
+      "pastelBlue": "#e0f2fe",
+      "pastelYellow": "#fef9c3",
+      "pastelPurple": "#f3e8ff",
+      "pastelOrange": "#ffedd5",
+      "white": "#FFFFFF"
+    },
+    "negativePrompts": [
+      "no gradients",
+      "no photorealism",
+      "no 3D rendering",
+      "no heavy shading",
+      "no text or letters",
+      "no watermarks",
+      "no busy backgrounds",
+      "no neon colors",
+      "no dark backgrounds",
+      "no realistic human faces"
+    ]
+  },
+  "usage": {
+    "placement": "absolute background behind the app content, low opacity (3-5%) as a subtle texture, or full opacity as a hero splash",
+    "cssExample": "background-image: url('/images/bg-doodle.png'); background-size: cover; background-repeat: repeat; opacity: 0.04;",
+    "altUsage": "Full opacity behind the landing/hero section with a white overlay gradient fading into the main content"
+  }
+}

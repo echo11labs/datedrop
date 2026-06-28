@@ -4,34 +4,35 @@ const config: Config = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}"
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
-      colors: {
-        night: "#0F0A12",
-        blush: "#FF4F81",
-        rose: "#FF7EB6",
-        lavender: "#F3E5F5",
-        wine: "#2A0D1C",
-        glass: "rgba(255,255,255,.08)"
-      },
       fontFamily: {
-        display: ["var(--font-playfair)", "Georgia", "serif"],
-        sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
-        button: ["var(--font-poppins)", "Inter", "system-ui", "sans-serif"]
+        sans: ["var(--font-nunito)", "var(--font-inter)", "sans-serif"],
+        display: ["var(--font-fredoka)", "var(--font-inter)", "sans-serif"],
+        mono: ["var(--font-inter)", "monospace"],
+      },
+      colors: {
+        black: "#111111",
+        white: "#FFFFFF",
+        pastel: {
+          green: "#dcfce7",
+          yellow: "#fef9c3",
+          pink: "#fce7f3",
+          blue: "#e0f2fe",
+          purple: "#f3e8ff",
+          orange: "#ffedd5",
+        },
       },
       boxShadow: {
-        glow: "0 24px 80px rgba(255, 79, 129, 0.22)",
-        glass: "0 24px 80px rgba(0, 0, 0, 0.35)"
+        brutal: "3px 3px 0 #111111",
+        "brutal-lg": "6px 6px 0 #111111",
+        "brutal-sm": "2px 2px 0 #111111",
       },
-      backgroundImage: {
-        "romance-radial":
-          "radial-gradient(circle at 18% 12%, rgba(255,126,182,.2), transparent 28%), radial-gradient(circle at 86% 18%, rgba(243,229,245,.14), transparent 24%), linear-gradient(135deg, #0F0A12 0%, #1B0C18 46%, #0F0A12 100%)"
-      }
-    }
+    },
   },
-  plugins: []
+  plugins: [],
 };
 
 export default config;

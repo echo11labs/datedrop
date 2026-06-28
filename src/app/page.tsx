@@ -1,716 +1,241 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  AnimatePresence,
-  motion,
-  useScroll,
-  useTransform,
-} from "framer-motion";
-import {
-  ArrowRight,
-  ChevronDown,
-  Clock3,
-  CalendarDays,
-  CalendarPlus,
   Check,
-  Copy,
+  Calendar as CalendarIcon,
+  Clock,
   Coffee,
-  Cookie,
-  Gem,
+  Utensils,
   Heart,
-  Link2,
-  Moon,
-  Palette,
   PartyPopper,
-  RotateCcw,
-  Share2,
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  IceCream,
+  Sandwich,
+  Salad,
+  Pizza,
+  Cake,
+  Beef,
+  Film,
+  TreePine,
+  Target,
+  Bike,
+  Music,
   Sparkles,
   Star,
-  Utensils,
-  Wine,
+  Camera,
+  Send,
+  Download,
+  Share2,
+  X,
+  PenLine,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useCallback,
-} from "react";
-import { DateWheelPicker } from "@/components/ui/date-wheel-picker";
-import { TimeWheelPicker } from "@/components/ui/time-wheel-picker";
+import { BrutalTimePicker } from "@/components/ui/brutal-time-picker";
+import html2canvas from "html2canvas";
+import { copyToClipboard } from "@/lib/utils";
 
 /* ─────────────────────────────────────
-   CONSTANTS
+   CONSTANTS & DATA
 ───────────────────────────────────── */
-const SCROLL_PER_WORLD = 900;
-
-const NO_PROMPTS = [
-  "Are you absolutely sure?",
-  "I'm actually a really great cook...",
-  "I'll let you pick the movie...",
-  "I have excellent taste in coffee...",
-  "Okay, now you're just playing hard to get.",
-  "Please? 🥺",
-  "I'm not giving up that easily.",
-  "Just click Yes. You know you want to."
-];
-
 const FOODS = [
-  { label: "Italian",      note: "pasta, candles",     icon: Wine      },
-  { label: "Japanese",     note: "refined & crisp",    icon: Utensils  },
-  { label: "Casual Bites", note: "relaxed, no fuss",   icon: Cookie    },
-  { label: "Coffee & Cake",note: "slow and sweet",     icon: Coffee    },
-  { label: "Fine Dining",  note: "dress beautifully",  icon: Gem       },
-  { label: "Surprise Me",  note: "trust the plan",     icon: Sparkles  },
+  {
+    id: "italian",
+    label: "Italian",
+    bg: "bg-[#fef9c3]",
+    icon: Pizza,
+    desc: "Great for a first date",
+  },
+  {
+    id: "japanese",
+    label: "Japanese",
+    bg: "bg-[#e0f2fe]",
+    icon: Utensils,
+    desc: "Elegant & adventurous",
+  },
+  {
+    id: "steak",
+    label: "Steakhouse",
+    bg: "bg-[#fce7f3]",
+    icon: Beef,
+    desc: "Classic & impressive",
+  },
+  {
+    id: "mexican",
+    label: "Mexican",
+    bg: "bg-[#ffedd5]",
+    icon: Sandwich,
+    desc: "Relaxed & fun",
+  },
+  {
+    id: "salad",
+    label: "Healthy Bowls",
+    bg: "bg-[#dcfce7]",
+    icon: Salad,
+    desc: "Light & energetic",
+  },
+  {
+    id: "dessert",
+    label: "Dessert",
+    bg: "bg-[#f3e8ff]",
+    icon: Cake,
+    desc: "Sweet & playful",
+  },
+  {
+    id: "coffee",
+    label: "Coffee & Chill",
+    bg: "bg-white",
+    icon: Coffee,
+    desc: "Low-key & cozy",
+  },
+  {
+    id: "icecream",
+    label: "Ice Cream",
+    bg: "bg-[#e0f2fe]",
+    icon: IceCream,
+    desc: "Fun & nostalgic",
+  },
 ];
 
 const VIBES = [
-  { label: "Romantic",   note: "soft and intentional", icon: Heart      },
-  { label: "Cozy",       note: "warm conversation",    icon: Coffee     },
-  { label: "Playful",    note: "no script, just fun",  icon: PartyPopper},
-  { label: "Refined",    note: "a reason to dress up", icon: Gem        },
-  { label: "Mysterious", note: "revealed at the door", icon: Moon       },
-  { label: "Surprise",   note: "you choose everything",icon: Star       },
+  {
+    id: "movie",
+    label: "Movie Night",
+    bg: "bg-[#fce7f3]",
+    icon: Film,
+    desc: "Cozy side-by-side",
+  },
+  {
+    id: "park",
+    label: "Park Walk",
+    bg: "bg-[#dcfce7]",
+    icon: TreePine,
+    desc: "Relaxed & romantic",
+  },
+  {
+    id: "bowling",
+    label: "Bowling",
+    bg: "bg-[#e0f2fe]",
+    icon: Target,
+    desc: "Playful competition",
+  },
+  {
+    id: "concert",
+    label: "Live Music",
+    bg: "bg-[#f3e8ff]",
+    icon: Music,
+    desc: "Shared experience",
+  },
+  {
+    id: "cycling",
+    label: "Bike Ride",
+    bg: "bg-[#fef9c3]",
+    icon: Bike,
+    desc: "Active & fun",
+  },
+  {
+    id: "picnic",
+    label: "Picnic",
+    bg: "bg-[#ffedd5]",
+    icon: Sparkles,
+    desc: "Dreamy & intimate",
+  },
+  {
+    id: "stargazing",
+    label: "Stargazing",
+    bg: "bg-white",
+    icon: Star,
+    desc: "Magical & memorable",
+  },
+  {
+    id: "photos",
+    label: "Photo Walk",
+    bg: "bg-[#fce7f3]",
+    icon: Camera,
+    desc: "Creative & playful",
+  },
 ];
 
-const THEME_OPTIONS = [
-  {
-    id: "soft-minimal",
-    label: "Soft Minimalism",
-    note: "quiet love-note flow",
-    swatch: "#c8192a",
-    surface: "#fafaf8",
-  },
-  {
-    id: "swiss",
-    label: "Swiss",
-    note: "poster grid, direct copy",
-    swatch: "#e00022",
-    surface: "#ffffff",
-  },
-  {
-    id: "fashion",
-    label: "Fashion Editorial",
-    note: "magazine pacing, luxe copy",
-    swatch: "#9f1239",
-    surface: "#fbf7ef",
-  },
-  {
-    id: "art-deco",
-    label: "Art Deco",
-    note: "centered gala invitation",
-    swatch: "#9a6a00",
-    surface: "#fff8e6",
-  },
-  {
-    id: "retro-future",
-    label: "Retro Futurism",
-    note: "signal panel, playful copy",
-    swatch: "#0f766e",
-    surface: "#f2fbf8",
-  },
-] as const;
-
-type ThemeId = (typeof THEME_OPTIONS)[number]["id"];
-
-const DEFAULT_THEME: ThemeId = "soft-minimal";
-
-type ThemeSectionCopy = {
-  label: string;
-  lead: string;
-  accent: string;
-  tail?: string;
-  body?: string;
-  cta?: string;
-  deco: string;
-  scene: string;
-};
-
-type ThemeContent = {
-  creatorHero: ThemeSectionCopy;
-  names: ThemeSectionCopy;
-  plan: ThemeSectionCopy;
-  date: ThemeSectionCopy;
-  time: ThemeSectionCopy;
-  food: ThemeSectionCopy;
-  vibe: ThemeSectionCopy;
-  creatorFinal: ThemeSectionCopy;
-  receiverHero: ThemeSectionCopy;
-  question: ThemeSectionCopy & { noBody: string; yes: string; no: string };
-  celebration: ThemeSectionCopy;
-  summary: ThemeSectionCopy;
-};
-
-const THEME_CONTENT = {
-  "soft-minimal": {
-    creatorHero: {
-      label: "A private invitation",
-      lead: "Ask them out,",
-      accent: "beautifully.",
-      body: "Create a private link to send to someone special.",
-      cta: "Get started",
-      deco: "Hello.",
-      scene: "note",
-    },
-    names: {
-      label: "The people",
-      lead: "Who is asking",
-      accent: "who?",
-      deco: "Who.",
-      scene: "names",
-    },
-    plan: {
-      label: "The details",
-      lead: "How do you want to",
-      accent: "handle the plan?",
-      deco: "Plan.",
-      scene: "plan",
-    },
-    date: {
-      label: "Pick a day",
-      lead: "When should I get to",
-      accent: "see you?",
-      cta: "Choose a time",
-      deco: "When.",
-      scene: "date",
-    },
-    time: {
-      label: "The hour",
-      lead: "What time",
-      accent: "feels right?",
-      body: "Pick the hour. I'll be ready.",
-      cta: "Choose the food",
-      deco: "When?",
-      scene: "time",
-    },
-    food: {
-      label: "The food",
-      lead: "What kind of dinner",
-      accent: "feels right?",
-      cta: "Set the vibe",
-      deco: "Eat.",
-      scene: "food",
-    },
-    vibe: {
-      label: "The vibe",
-      lead: "Set the mood",
-      accent: "for the evening.",
-      cta: "Finish details",
-      deco: "Vibe.",
-      scene: "mood",
-    },
-    creatorFinal: {
-      label: "Ready to send",
-      lead: "Your invite is",
-      accent: "ready.",
-      body: "Copy the link below and send it to {receiver}.",
-      deco: "Done.",
-      scene: "send",
-    },
-    receiverHero: {
-      label: "A private invitation",
-      lead: "Hello,",
-      accent: "{receiver}.",
-      body: "{sender} wanted to ask you something.",
-      cta: "See what it is",
-      deco: "Hello.",
-      scene: "open",
-    },
-    question: {
-      label: "The question",
-      lead: "Will you go on a",
-      accent: "date with me?",
-      noBody: "No pressure. A little charm, a little intention.",
-      yes: "Yes",
-      no: "No",
-      deco: "Us?",
-      scene: "ask",
-    },
-    celebration: {
-      label: "Correct answer",
-      lead: "You just made",
-      accent: "my whole day.",
-      body: "They've taken care of all the details.",
-      cta: "See the plan",
-      deco: "Yes!",
-      scene: "yes",
-    },
-    summary: {
-      label: "All set",
-      lead: "It's a",
-      accent: "date.",
-      deco: "Done.",
-      scene: "plan",
-    },
-  },
-  swiss: {
-    creatorHero: {
-      label: "Invitation system",
-      lead: "Make the ask",
-      accent: "clear.",
-      body: "Build a precise private date brief and send one link.",
-      cta: "Start brief",
-      deco: "01",
-      scene: "brief",
-    },
-    names: {
-      label: "Participants",
-      lead: "Identify",
-      accent: "both sides.",
-      deco: "02",
-      scene: "names",
-    },
-    plan: {
-      label: "Planning route",
-      lead: "Assign",
-      accent: "the details.",
-      deco: "03",
-      scene: "route",
-    },
-    date: {
-      label: "Date",
-      lead: "Select the",
-      accent: "day.",
-      cta: "Set time",
-      deco: "04",
-      scene: "date",
-    },
-    time: {
-      label: "Time",
-      lead: "Lock the",
-      accent: "hour.",
-      body: "Choose the cleanest time slot for the plan.",
-      cta: "Set food",
-      deco: "05",
-      scene: "time",
-    },
-    food: {
-      label: "Food",
-      lead: "Choose the",
-      accent: "format.",
-      cta: "Set tone",
-      deco: "06",
-      scene: "food",
-    },
-    vibe: {
-      label: "Tone",
-      lead: "Define the",
-      accent: "mood.",
-      cta: "Review link",
-      deco: "07",
-      scene: "tone",
-    },
-    creatorFinal: {
-      label: "Dispatch",
-      lead: "The invite is",
-      accent: "ready.",
-      body: "Send the selected format to {receiver}.",
-      deco: "08",
-      scene: "send",
-    },
-    receiverHero: {
-      label: "Private brief",
-      lead: "Hello,",
-      accent: "{receiver}.",
-      body: "{sender} sent a date request.",
-      cta: "Open brief",
-      deco: "01",
-      scene: "open",
-    },
-    question: {
-      label: "Response",
-      lead: "Accept a",
-      accent: "date?",
-      noBody: "Simple question. Clear answer.",
-      yes: "Accept",
-      no: "Decline",
-      deco: "02",
-      scene: "ask",
-    },
-    celebration: {
-      label: "Accepted",
-      lead: "Response",
-      accent: "recorded.",
-      body: "The plan is ready for review.",
-      cta: "View plan",
-      deco: "03",
-      scene: "yes",
-    },
-    summary: {
-      label: "Final plan",
-      lead: "Date plan",
-      accent: "confirmed.",
-      deco: "04",
-      scene: "plan",
-    },
-  },
-  fashion: {
-    creatorHero: {
-      label: "Private edit",
-      lead: "Make the moment",
-      accent: "worth dressing for.",
-      body: "Send an invitation with the mood, timing, and taste already styled.",
-      cta: "Begin the edit",
-      deco: "Atelier",
-      scene: "cover",
-    },
-    names: {
-      label: "Cast",
-      lead: "Name the",
-      accent: "leading two.",
-      deco: "Names",
-      scene: "cast",
-    },
-    plan: {
-      label: "Direction",
-      lead: "Choose who",
-      accent: "sets the scene.",
-      deco: "Brief",
-      scene: "brief",
-    },
-    date: {
-      label: "The date",
-      lead: "Choose the",
-      accent: "opening night.",
-      cta: "Choose the hour",
-      deco: "Date",
-      scene: "date",
-    },
-    time: {
-      label: "Call time",
-      lead: "What hour",
-      accent: "has the mood?",
-      body: "Pick the time. The entrance can take care of itself.",
-      cta: "Choose the table",
-      deco: "Hour",
-      scene: "time",
-    },
-    food: {
-      label: "Table",
-      lead: "Style the",
-      accent: "dinner.",
-      cta: "Shape the mood",
-      deco: "Menu",
-      scene: "food",
-    },
-    vibe: {
-      label: "Moodboard",
-      lead: "Set the",
-      accent: "evening's language.",
-      cta: "Wrap the invite",
-      deco: "Mood",
-      scene: "mood",
-    },
-    creatorFinal: {
-      label: "Ready for release",
-      lead: "The invite is",
-      accent: "styled.",
-      body: "Send the editorial cut to {receiver}.",
-      deco: "Send",
-      scene: "send",
-    },
-    receiverHero: {
-      label: "An invitation",
-      lead: "For",
-      accent: "{receiver}.",
-      body: "{sender} prepared something with your name on it.",
-      cta: "Open the note",
-      deco: "RSVP",
-      scene: "open",
-    },
-    question: {
-      label: "The ask",
-      lead: "Will you be",
-      accent: "my date?",
-      noBody: "Consider this your private front-row invitation.",
-      yes: "Yes",
-      no: "Not yet",
-      deco: "Us",
-      scene: "ask",
-    },
-    celebration: {
-      label: "Accepted",
-      lead: "That was",
-      accent: "the answer.",
-      body: "The details are ready for their close-up.",
-      cta: "See the plan",
-      deco: "Yes",
-      scene: "yes",
-    },
-    summary: {
-      label: "Final look",
-      lead: "It's a",
-      accent: "date.",
-      deco: "Plan",
-      scene: "plan",
-    },
-  },
-  "art-deco": {
-    creatorHero: {
-      label: "Evening invitation",
-      lead: "Present the",
-      accent: "grand invitation.",
-      body: "Build a polished date card with a little ceremony.",
-      cta: "Open the card",
-      deco: "Soiree",
-      scene: "card",
-    },
-    names: {
-      label: "Guests",
-      lead: "Place the",
-      accent: "names.",
-      deco: "Guests",
-      scene: "names",
-    },
-    plan: {
-      label: "Arrangement",
-      lead: "Who will host",
-      accent: "the evening?",
-      deco: "Host",
-      scene: "host",
-    },
-    date: {
-      label: "The evening",
-      lead: "Choose the",
-      accent: "date.",
-      cta: "Choose the hour",
-      deco: "Date",
-      scene: "date",
-    },
-    time: {
-      label: "The hour",
-      lead: "Set the",
-      accent: "arrival.",
-      body: "Choose the time for the evening to begin.",
-      cta: "Choose the menu",
-      deco: "Hour",
-      scene: "time",
-    },
-    food: {
-      label: "The menu",
-      lead: "Select the",
-      accent: "table.",
-      cta: "Choose the atmosphere",
-      deco: "Menu",
-      scene: "food",
-    },
-    vibe: {
-      label: "Atmosphere",
-      lead: "Set the",
-      accent: "occasion.",
-      cta: "Seal the invitation",
-      deco: "Mood",
-      scene: "mood",
-    },
-    creatorFinal: {
-      label: "Sealed",
-      lead: "Your invitation",
-      accent: "awaits.",
-      body: "Send the finished card to {receiver}.",
-      deco: "Seal",
-      scene: "send",
-    },
-    receiverHero: {
-      label: "A sealed invitation",
-      lead: "Good evening,",
-      accent: "{receiver}.",
-      body: "{sender} requests the pleasure of your company.",
-      cta: "Open it",
-      deco: "RSVP",
-      scene: "open",
-    },
-    question: {
-      label: "RSVP",
-      lead: "Will you attend",
-      accent: "this date?",
-      noBody: "A simple yes would make the evening official.",
-      yes: "Accept",
-      no: "Regretfully",
-      deco: "RSVP",
-      scene: "ask",
-    },
-    celebration: {
-      label: "Accepted",
-      lead: "The evening is",
-      accent: "official.",
-      body: "The invitation has become a plan.",
-      cta: "View the card",
-      deco: "Yes",
-      scene: "yes",
-    },
-    summary: {
-      label: "Engagement card",
-      lead: "The date is",
-      accent: "set.",
-      deco: "Plan",
-      scene: "plan",
-    },
-  },
-  "retro-future": {
-    creatorHero: {
-      label: "Signal compose",
-      lead: "Transmit a",
-      accent: "date signal.",
-      body: "Build a playful invite packet and send it across the timeline.",
-      cta: "Boot invite",
-      deco: "Signal",
-      scene: "boot",
-    },
-    names: {
-      label: "Identity scan",
-      lead: "Sync the",
-      accent: "two names.",
-      deco: "ID",
-      scene: "names",
-    },
-    plan: {
-      label: "Control mode",
-      lead: "Choose the",
-      accent: "pilot.",
-      deco: "Mode",
-      scene: "mode",
-    },
-    date: {
-      label: "Calendar lock",
-      lead: "Pick the",
-      accent: "coordinates.",
-      cta: "Tune the hour",
-      deco: "Date",
-      scene: "date",
-    },
-    time: {
-      label: "Time signal",
-      lead: "Tune the",
-      accent: "arrival window.",
-      body: "Choose the hour and keep the signal clean.",
-      cta: "Pick fuel",
-      deco: "Time",
-      scene: "time",
-    },
-    food: {
-      label: "Fuel type",
-      lead: "Select the",
-      accent: "dinner channel.",
-      cta: "Set the vibe",
-      deco: "Food",
-      scene: "food",
-    },
-    vibe: {
-      label: "Atmosphere",
-      lead: "Program the",
-      accent: "mood.",
-      cta: "Compile invite",
-      deco: "Vibe",
-      scene: "mood",
-    },
-    creatorFinal: {
-      label: "Ready to transmit",
-      lead: "Invite packet",
-      accent: "compiled.",
-      body: "Send the signal to {receiver}.",
-      deco: "Send",
-      scene: "send",
-    },
-    receiverHero: {
-      label: "Incoming signal",
-      lead: "Hello,",
-      accent: "{receiver}.",
-      body: "{sender} sent a date transmission.",
-      cta: "Decode signal",
-      deco: "Open",
-      scene: "open",
-    },
-    question: {
-      label: "Response required",
-      lead: "Join the",
-      accent: "date mission?",
-      noBody: "Signal is stable. Charm levels are unusually high.",
-      yes: "Launch",
-      no: "Hold",
-      deco: "Ask",
-      scene: "ask",
-    },
-    celebration: {
-      label: "Launch confirmed",
-      lead: "Mission",
-      accent: "accepted.",
-      body: "Coordinates are ready for review.",
-      cta: "View coordinates",
-      deco: "Yes",
-      scene: "yes",
-    },
-    summary: {
-      label: "Mission card",
-      lead: "Date mission",
-      accent: "locked.",
-      deco: "Plan",
-      scene: "plan",
-    },
-  },
-} satisfies Record<ThemeId, ThemeContent>;
+const TIMES = [
+  "11:00 AM",
+  "12:00 PM",
+  "2:00 PM",
+  "6:00 PM",
+  "7:00 PM",
+  "8:00 PM",
+  "9:00 PM",
+];
 
 /* ─────────────────────────────────────
    HELPERS
 ───────────────────────────────────── */
-function clamp(v: number, lo: number, hi: number) {
-  return Math.max(lo, Math.min(hi, v));
-}
-
 function addDays(date: Date, days: number) {
   const next = new Date(date);
   next.setDate(next.getDate() + days);
   return next;
 }
 
-function toDateValue(date: Date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+function getNextWeekDays() {
+  const today = new Date();
+  return Array.from({ length: 7 }).map((_, i) => {
+    const d = addDays(today, i);
+    return {
+      dateObj: d,
+      dayName: d.toLocaleDateString("en-US", { weekday: "short" }),
+      dateNum: d.getDate(),
+      fullVal: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`,
+      isToday: i === 0,
+    };
+  });
 }
 
-function getNextWeekday(base: Date, weekday: number) {
-  const start = new Date(base);
-  start.setHours(12, 0, 0, 0);
-  const diff = (weekday - start.getDay() + 7) % 7 || 7;
-  return addDays(start, diff);
-}
-
-function getQuickDates(base = new Date()) {
-  const friday = getNextWeekday(base, 5);
-  const saturday = getNextWeekday(base, 6);
-
-  return [
-    { label: "Friday", value: toDateValue(friday) },
-    { label: "Saturday", value: toDateValue(saturday) },
-    { label: "Next Friday", value: toDateValue(addDays(friday, 7)) },
-  ];
-}
-
-function formatDate(v: string) {
-  if (!v) return "a day yet to be chosen";
-  return new Intl.DateTimeFormat("en", {
-    weekday: "long", month: "long", day: "numeric",
-  }).format(new Date(`${v}T12:00:00`));
+function getCalendarUrl(
+  date: string,
+  time: string,
+  food: string,
+  vibe: string,
+  senderName: string,
+) {
+  try {
+    const dt = new Date(
+      `${date}T${(() => {
+        const [t, period] = time.split(" ");
+        const [h, m] = t.split(":");
+        let hour = parseInt(h);
+        if (period === "PM" && hour !== 12) hour += 12;
+        if (period === "AM" && hour === 12) hour = 0;
+        return `${String(hour).padStart(2, "0")}:${m}:00`;
+      })()}`,
+    );
+    const end = new Date(dt.getTime() + 3 * 60 * 60 * 1000);
+    const fmt = (d: Date) =>
+      d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+    const title = encodeURIComponent(
+      `Date with ${senderName} — ${food || vibe || "Special Date"}`,
+    );
+    const details = encodeURIComponent(
+      `${food ? `Dinner: ${food}` : ""}${food && vibe ? "\n" : ""}${vibe ? `Activity: ${vibe}` : ""}\n\nPlanned with DateDrop ❤️`,
+    );
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${fmt(dt)}/${fmt(end)}&details=${details}`;
+  } catch {
+    return null;
+  }
 }
 
 type InvitePayload = {
-  m?: "sender_plans" | "receiver_plans";
   s?: string;
   r?: string;
   d?: string;
   t?: string;
   f?: string;
   v?: string;
-  a?: "accepted";
-  th?: ThemeId;
+  a?: string;
+  sg?: string;
+  rg?: string;
 };
-
-function isThemeId(value: unknown): value is ThemeId {
-  return THEME_OPTIONS.some((theme) => theme.id === value);
-}
 
 function encodeInvitePayload(payload: InvitePayload) {
   const bytes = new TextEncoder().encode(JSON.stringify(payload));
@@ -727,1179 +252,2678 @@ function decodeInvitePayload(hash: string): InvitePayload {
   return JSON.parse(new TextDecoder().decode(bytes)) as InvitePayload;
 }
 
-function fillThemeText(
-  text: string | undefined,
-  values: { sender: string; receiver: string },
-) {
-  if (!text) return "";
-  return text
-    .replaceAll("{sender}", values.sender || "Someone")
-    .replaceAll("{receiver}", values.receiver || "you");
-}
-
-function renderThemeHeadline(
-  copy: ThemeSectionCopy,
-  values: { sender: string; receiver: string },
-) {
-  return (
-    <>
-      {fillThemeText(copy.lead, values)}
-      <br />
-      <em>{fillThemeText(copy.accent, values)}</em>
-      {copy.tail ? fillThemeText(copy.tail, values) : null}
-    </>
-  );
-}
-
-async function copyText(text: string) {
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(text);
-    return;
-  }
-
-  const input = document.createElement("textarea");
-  input.value = text;
-  input.style.position = "fixed";
-  input.style.opacity = "0";
-  document.body.appendChild(input);
-  input.focus();
-  input.select();
-  document.execCommand("copy");
-  input.remove();
-}
-
-function isAbortError(error: unknown) {
-  return error instanceof DOMException && error.name === "AbortError";
-}
-
-function parseInviteDateTime(dateValue: string, timeValue: string) {
-  const [year, month, day] = dateValue.split("-").map(Number);
-  const match = timeValue.match(/^(\d{1,2}):(\d{2})\s?(AM|PM)$/i);
-  const rawHour = Number(match?.[1] ?? 7);
-  const minute = Number(match?.[2] ?? 0);
-  const period = (match?.[3] ?? "PM").toUpperCase();
-  const hour = period === "PM" && rawHour !== 12
-    ? rawHour + 12
-    : period === "AM" && rawHour === 12
-      ? 0
-      : rawHour;
-
-  return new Date(year, month - 1, day, hour, minute, 0);
-}
-
-function formatIcsDate(date: Date) {
-  return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-}
-
-function escapeIcsText(text: string) {
-  return text
-    .replace(/\\/g, "\\\\")
-    .replace(/,/g, "\\,")
-    .replace(/;/g, "\\;")
-    .replace(/\n/g, "\\n");
-}
-
 /* ─────────────────────────────────────
-   SPRING ANIMATION VARIANTS
-   Per skill: ease-out enter, ease-in exit,
-   exit ~70% of enter duration
+   CONFETTI
 ───────────────────────────────────── */
-const fadeUp = {
-  hidden: { opacity: 0, y: 22 },
-  show: (i = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      delay: i * 0.07,
-      duration: 0.45,
-      ease: [0.0, 0.0, 0.2, 1] as [number, number, number, number], // ease-out
-    },
-  }),
-  exit: {
-    opacity: 0,
-    y: -12,
-    transition: { duration: 0.22, ease: [0.4, 0.0, 1, 1] as [number, number, number, number] }, // ease-in, 70% of enter
-  },
-};
-
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.95 },
-  show: (i = 0) => ({
-    opacity: 1,
-    scale: 1,
-    transition: {
-      delay: i * 0.07,
-      duration: 0.5,
-      ease: [0.0, 0.0, 0.2, 1] as [number, number, number, number],
-    },
-  }),
-  exit: {
-    opacity: 0,
-    scale: 0.98,
-    transition: { duration: 0.22, ease: [0.4, 0.0, 1, 1] as [number, number, number, number] },
-  },
-};
-
-/* ─────────────────────────────────────
-   CUSTOM CURSOR
-───────────────────────────────────── */
-function Cursor() {
-  const dotRef  = useRef<HTMLDivElement>(null);
-  const ringRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const dot  = dotRef.current;
-    const ring = ringRef.current;
-    if (!dot || !ring) return;
-
-    let rx = 0, ry = 0;
-    let animId: number;
-
-    const onMove = (e: MouseEvent) => {
-      dot.style.left = `${e.clientX}px`;
-      dot.style.top  = `${e.clientY}px`;
-    };
-
-    const lerp = () => {
-      const tx = parseFloat(dot.style.left || "0");
-      const ty = parseFloat(dot.style.top  || "0");
-      rx += (tx - rx) * 0.14;
-      ry += (ty - ry) * 0.14;
-      ring.style.left = `${rx}px`;
-      ring.style.top  = `${ry}px`;
-      animId = requestAnimationFrame(lerp);
-    };
-    animId = requestAnimationFrame(lerp);
-
-    const addHover = () => ring.classList.add("hovering");
-    const rmHover  = () => ring.classList.remove("hovering");
-    const targets  = document.querySelectorAll("button, a, input, [role=button]");
-    targets.forEach(el => {
-      el.addEventListener("mouseenter", addHover);
-      el.addEventListener("mouseleave", rmHover);
-    });
-
-    document.addEventListener("mousemove", onMove);
-    return () => {
-      document.removeEventListener("mousemove", onMove);
-      targets.forEach(el => {
-        el.removeEventListener("mouseenter", addHover);
-        el.removeEventListener("mouseleave", rmHover);
-      });
-      cancelAnimationFrame(animId);
-    };
-  }, []);
+function Confetti() {
+  const colors = [
+    "#E11D48",
+    "#FB7185",
+    "#fef9c3",
+    "#dcfce7",
+    "#e0f2fe",
+    "#f3e8ff",
+    "#ffedd5",
+    "#111111",
+  ];
+  const pieces = Array.from({ length: 60 }, (_, i) => ({
+    id: i,
+    color: colors[i % colors.length],
+    x: Math.random() * 100,
+    delay: Math.random() * 0.8,
+    duration: 2 + Math.random() * 2,
+    size: 6 + Math.random() * 10,
+    rotation: Math.random() * 360,
+  }));
 
   return (
-    <>
-      <div ref={dotRef}  className="cursor-dot"  aria-hidden="true" />
-      <div ref={ringRef} className="cursor-ring" aria-hidden="true" />
-    </>
-  );
-}
-
-/* ─────────────────────────────────────
-   OPTION CARD
-───────────────────────────────────── */
-function OptionCard({
-  selected, label, note, icon: Icon, onClick, index,
-}: {
-  selected: boolean; label: string; note: string;
-  icon: LucideIcon; onClick: () => void; index: number;
-}) {
-  return (
-    <motion.button
-      className={`option-card ${selected ? "selected" : ""}`}
-      onClick={onClick}
-      aria-pressed={selected}
-      variants={fadeUp}
-      initial="hidden"
-      animate="show"
-      custom={index}
-      whileTap={{ scale: 0.97 }}
-    >
-      <span className={`option-icon ${selected ? "selected" : ""}`}>
-        <Icon
-          className="w-4 h-4"
-          style={{ color: selected ? "var(--red)" : "var(--ink-muted)" }}
-          aria-hidden="true"
-        />
-      </span>
-      <span className="flex flex-col min-w-0">
-        <span className="option-label">{label}</span>
-        <span className="option-note">{note}</span>
-      </span>
-      <AnimatePresence>
-        {selected && (
-          <motion.span
-            variants={scaleIn}
-            initial="hidden"
-            animate="show"
-            exit="exit"
-            className="option-check"
-            aria-hidden="true"
-          >
-            <Check className="w-3 h-3 text-white" />
-          </motion.span>
-        )}
-      </AnimatePresence>
-    </motion.button>
-  );
-}
-
-/* ─────────────────────────────────────
-   CELEBRATION BURST
-───────────────────────────────────── */
-function CelebrationBurst() {
-  const particles = useMemo(() =>
-    Array.from({ length: 24 }, (_, i) => {
-      const angle = (i / 24) * 360;
-      const dist  = 70 + Math.random() * 120;
-      const rad   = (angle * Math.PI) / 180;
-      return {
-        id: i,
-        tx: `${Math.cos(rad) * dist}px`,
-        ty: `${Math.sin(rad) * dist}px`,
-        rot: `${(Math.random() - 0.5) * 480}deg`,
-        delay: `${Math.random() * 0.2}s`,
-        symbol: ["✦", "♥", "◆", "★", "•"][i % 5],
-        color: ["#c8192a", "#e01f2e", "#0f0e0c", "#6b6560", "#c8192a"][i % 5],
-      };
-    }), []);
-
-  return (
-    <div
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-0 flex items-center justify-center"
-    >
-      {particles.map(p => (
-        <span
+    <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+      {pieces.map((p) => (
+        <motion.div
           key={p.id}
-          className="burst-particle"
+          className="absolute rounded-sm"
           style={{
-            "--tx": p.tx, "--ty": p.ty,
-            "--rot": p.rot, "--delay": p.delay,
-            color: p.color,
-          } as CSSProperties}
-        >
-          {p.symbol}
-        </span>
+            left: `${p.x}%`,
+            top: -20,
+            width: p.size,
+            height: p.size * 0.6,
+            backgroundColor: p.color,
+            rotate: p.rotation,
+          }}
+          animate={{
+            y: ["0vh", "110vh"],
+            rotate: [
+              p.rotation,
+              p.rotation + 360 * (Math.random() > 0.5 ? 1 : -1),
+            ],
+            opacity: [1, 1, 0],
+          }}
+          transition={{
+            duration: p.duration,
+            delay: p.delay,
+            ease: "easeIn",
+          }}
+        />
       ))}
     </div>
   );
 }
 
 /* ─────────────────────────────────────
-   DECORATIVE ELEMENTS (CSS, no images)
+   RUNAWAY NO BUTTON
 ───────────────────────────────────── */
+function RunawayNoButton({ onGiveUp }: { onGiveUp: () => void }) {
+  const [attempts, setAttempts] = useState(0);
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const [surrendered, setSurrendered] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
 
-// Large italic word behind content
-function DecoWord({ word, opacity = 0.04, index = 0 }: { word: string; opacity?: number; index?: number }) {
-  const { scrollY } = useScroll();
-  const start = (index - 1) * SCROLL_PER_WORLD;
-  const end = (index + 1) * SCROLL_PER_WORLD;
-  
-  const x = useTransform(scrollY, [start, end], [100, -100]);
-  const y = useTransform(scrollY, [start, end], [30, -30]);
+  const flee = useCallback(() => {
+    if (attempts >= 3) {
+      setSurrendered(true);
+      setTimeout(onGiveUp, 1200);
+      return;
+    }
+    setAttempts((a) => a + 1);
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const maxX = Math.min(vw * 0.3, 180);
+    const maxY = Math.min(vh * 0.25, 120);
+    setPos({
+      x: (Math.random() - 0.5) * 2 * maxX,
+      y: (Math.random() - 0.5) * 2 * maxY,
+    });
+  }, [attempts, onGiveUp]);
+
+  const messages = ["", "Hey—!", "Stop it!", "Fine... 😤"];
+
+  if (surrendered) {
+    return (
+      <motion.p
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="text-sm font-bold text-gray-400 text-center py-3"
+      >
+        Fine... but you&apos;re missing out 😤
+      </motion.p>
+    );
+  }
 
   return (
-    <motion.span
-      aria-hidden="true"
-      className="pointer-events-none select-none absolute right-[-2%] bottom-[-0.05em]
-                 font-serif italic leading-none"
-      style={{
-        fontSize: "clamp(180px, 28vw, 360px)",
-        fontWeight: 900,
-        color: "var(--ink)",
-        opacity,
-        letterSpacing: "-0.04em",
-        fontFamily: "var(--font-playfair), Georgia, serif",
-        zIndex: 0,
-        x, y
-      }}
-    >
-      {word}
-    </motion.span>
+    <div className="relative flex justify-center" style={{ height: 52 }}>
+      <motion.button
+        ref={btnRef}
+        animate={{ x: pos.x, y: pos.y }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        onMouseEnter={flee}
+        onTouchStart={flee}
+        onClick={flee}
+        className="absolute py-3 px-6 bg-white text-gray-500 font-bold text-sm uppercase rounded-2xl border-[2px] border-gray-200 hover:border-gray-300 transition-colors cursor-pointer select-none"
+        style={{ fontSize: attempts >= 2 ? "11px" : undefined }}
+      >
+        {attempts > 0 ? messages[Math.min(attempts, 3)] : "Not this time"}
+      </motion.button>
+    </div>
   );
 }
 
-// Thin red line accent
-function RedLine({
-  style,
-  vertical = false,
-  index = 0,
+/* ─────────────────────────────────────
+   RECEIVER REVEAL SCREENS
+───────────────────────────────────── */
+type RevealPhase =
+  "name" | "thinking" | "question" | "plan" | "accept" | "celebration";
+
+function ReceiverRevealFlow({
+  senderName,
+  receiverName,
+  date,
+  time,
+  food,
+  vibe,
+  planId,
+  accepted: initialAccepted,
+  summaryCardRef,
+  screenshotBusy,
+  downloadScreenshot,
 }: {
-  style?: CSSProperties;
-  vertical?: boolean;
-  index?: number;
+  senderName: string;
+  receiverName: string;
+  date: string;
+  time: string;
+  food: string;
+  vibe: string;
+  planId: string;
+  accepted: boolean;
+  summaryCardRef: React.RefObject<HTMLDivElement | null>;
+  screenshotBusy: boolean;
+  downloadScreenshot: () => void;
 }) {
-  const { scrollY } = useScroll();
-  const start = (index - 1) * SCROLL_PER_WORLD;
-  const end = (index + 1) * SCROLL_PER_WORLD;
-  
-  const x = useTransform(scrollY, [start, end], [-50, 50]);
-  const y = useTransform(scrollY, [start, end], [-15, 15]);
+  const [phase, setPhase] = useState<RevealPhase>(
+    initialAccepted ? "celebration" : "name",
+  );
+  const [showConfetti, setShowConfetti] = useState(initialAccepted);
+  const [planStep, setPlanStep] = useState(0);
+
+  const advance = () => {
+    setPhase((p) => {
+      if (p === "name") return "thinking";
+      if (p === "thinking") return "question";
+      if (p === "question") return "plan";
+      if (p === "plan") return "accept";
+      return p;
+    });
+  };
+
+  const handleAccept = () => {
+    if (planId) {
+      fetch(`/api/plans/${planId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accepted: true }),
+      }).catch((e) => console.error("Failed to update plan", e));
+    }
+    setShowConfetti(true);
+    setPhase("celebration");
+    setTimeout(() => setShowConfetti(false), 4000);
+  };
+
+  const calUrl =
+    date && time ? getCalendarUrl(date, time, food, vibe, senderName) : null;
+
+  const planDetails = [
+    date
+      ? {
+          label: "When",
+          value: new Date(date + "T12:00:00").toLocaleDateString("en-US", {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+          }),
+          sub: time,
+          icon: CalendarIcon,
+          bg: "bg-[#dcfce7]",
+        }
+      : null,
+    food
+      ? {
+          label: "We're eating",
+          value: food,
+          icon: Utensils,
+          bg: "bg-[#fef9c3]",
+        }
+      : null,
+    vibe
+      ? { label: "Activity", value: vibe, icon: Star, bg: "bg-[#f3e8ff]" }
+      : null,
+  ].filter(Boolean) as {
+    label: string;
+    value: string;
+    sub?: string;
+    icon: LucideIcon;
+    bg: string;
+  }[];
+
+  return (
+    <div className="min-h-screen bg-[#FFFBF5] flex flex-col items-center justify-center relative overflow-hidden">
+      {showConfetti && <Confetti />}
+
+      {/* Subtle background hearts */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.04]">
+        {[...Array(12)].map((_, i) => (
+          <Heart
+            key={i}
+            className="absolute text-rose-500"
+            fill="currentColor"
+            style={{
+              left: `${(i * 17 + 5) % 100}%`,
+              top: `${(i * 23 + 10) % 100}%`,
+              width: 20 + (i % 3) * 16,
+              height: 20 + (i % 3) * 16,
+            }}
+          />
+        ))}
+      </div>
+
+      <AnimatePresence mode="wait">
+        {/* PHASE 1: Just the name */}
+        {phase === "name" && (
+          <motion.div
+            key="name"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -24 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="flex flex-col items-center text-center px-6 gap-8"
+            onClick={advance}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="w-16 h-16 bg-[#fce7f3] border-[3px] border-black rounded-full flex items-center justify-center shadow-brutal"
+            >
+              <Heart
+                className="w-8 h-8 text-rose-500"
+                fill="currentColor"
+                strokeWidth={0}
+              />
+            </motion.div>
+
+            <div>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="text-sm font-bold uppercase tracking-[0.25em] text-gray-400 mb-3"
+              >
+                A message for
+              </motion.p>
+              <motion.h1
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.7, duration: 0.5 }}
+                className="text-6xl md:text-8xl font-black tracking-tighter leading-none"
+                style={{ fontFamily: "var(--font-fredoka, var(--font-inter))" }}
+              >
+                {receiverName || "You"}
+              </motion.h1>
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.2 }}
+              className="flex items-center gap-2 text-sm font-bold text-gray-400 animate-pulse"
+            >
+              Tap to continue <ArrowRight className="w-4 h-4" />
+            </motion.div>
+          </motion.div>
+        )}
+
+        {/* PHASE 2: Someone's been thinking about you */}
+        {phase === "thinking" && (
+          <motion.div
+            key="thinking"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -24 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="flex flex-col items-center text-center px-6 gap-8 max-w-sm"
+            onClick={advance}
+          >
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+              className="text-3xl md:text-4xl font-black leading-tight tracking-tight"
+            >
+              Someone&apos;s been thinking about you.
+            </motion.p>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.1, duration: 0.6 }}
+              className="text-xl font-bold text-gray-500"
+            >
+              — {senderName}
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.8 }}
+              className="flex items-center gap-2 text-sm font-bold text-gray-400 animate-pulse"
+            >
+              Tap to continue <ArrowRight className="w-4 h-4" />
+            </motion.div>
+          </motion.div>
+        )}
+
+        {/* PHASE 3: THE QUESTION — full screen dramatic */}
+        {phase === "question" && (
+          <motion.div
+            key="question"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 1.05 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col items-center text-center px-6 gap-10 max-w-md w-full"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 32 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.7, ease: "easeOut" }}
+            >
+              <p className="text-sm font-bold uppercase tracking-[0.3em] text-rose-400 mb-4">
+                {senderName} wants to know
+              </p>
+              <h1
+                className="text-4xl md:text-6xl font-black leading-tight tracking-tight mb-2"
+                style={{ fontFamily: "var(--font-fredoka, var(--font-inter))" }}
+              >
+                Will you go on a date with me?
+              </h1>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9, duration: 0.5 }}
+              className="flex flex-col gap-4 w-full max-w-xs"
+            >
+              <motion.button
+                whileHover={{ scale: 1.03, y: -2 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={advance}
+                className="w-full py-4 bg-black text-white font-black text-lg uppercase rounded-2xl border-[3px] border-black shadow-brutal transition-shadow hover:shadow-brutal-lg flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Heart
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  strokeWidth={0}
+                />
+                Yes! Show me the plan
+              </motion.button>
+
+              <RunawayNoButton onGiveUp={advance} />
+            </motion.div>
+          </motion.div>
+        )}
+
+        {/* PHASE 4: THE PLAN REVEAL — one detail at a time */}
+        {phase === "plan" && (
+          <motion.div
+            key="plan"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -24 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col items-center px-6 gap-6 w-full max-w-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-center"
+            >
+              <p className="text-sm font-bold uppercase tracking-[0.25em] text-rose-400 mb-2">
+                Here&apos;s what {senderName} planned
+              </p>
+              <h2 className="text-3xl font-black tracking-tight">for us 🗓️</h2>
+            </motion.div>
+
+            <div className="flex flex-col gap-3 w-full">
+              {planDetails.map((detail, i) => {
+                const Icon = detail.icon;
+                return (
+                  <motion.div
+                    key={detail.label}
+                    initial={{ opacity: 0, x: -24 }}
+                    animate={{ opacity: planStep >= i ? 1 : 0.15, x: 0 }}
+                    transition={{ delay: i * 0.35 + 0.3, duration: 0.5 }}
+                    className="flex items-center gap-4 bg-white border-[3px] border-black rounded-2xl p-4 shadow-brutal"
+                  >
+                    <div
+                      className={`w-12 h-12 ${detail.bg} border-2 border-black rounded-xl flex items-center justify-center flex-shrink-0`}
+                    >
+                      <Icon className="w-5 h-5" strokeWidth={2.5} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">
+                        {detail.label}
+                      </p>
+                      <p className="font-black text-base leading-tight">
+                        {detail.value}
+                      </p>
+                      {detail.sub && (
+                        <p className="text-sm text-gray-500 font-bold mt-0.5">
+                          {detail.sub}
+                        </p>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: planDetails.length * 0.35 + 0.8 }}
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => {
+                if (planStep < planDetails.length - 1) {
+                  setPlanStep((s) => s + 1);
+                } else {
+                  setPhase("accept");
+                }
+              }}
+              className="w-full py-4 bg-black text-white font-black text-base uppercase rounded-2xl border-[3px] border-black shadow-brutal flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {planStep < planDetails.length - 1 ? "See more" : "Continue"}
+              <ArrowRight className="w-5 h-5" strokeWidth={3} />
+            </motion.button>
+          </motion.div>
+        )}
+
+        {/* PHASE 5: ACCEPT */}
+        {phase === "accept" && (
+          <motion.div
+            key="accept"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 1.05 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col items-center px-6 gap-6 w-full max-w-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-center"
+            >
+              <p className="text-sm font-bold uppercase tracking-[0.25em] text-rose-400 mb-3">
+                {senderName} is waiting
+              </p>
+              <h2 className="text-4xl font-black tracking-tighter leading-none">
+                So, are you in?
+              </h2>
+            </motion.div>
+
+            {/* Summary card */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              ref={summaryCardRef}
+              className="w-full rounded-3xl overflow-hidden border-[3px] border-black shadow-brutal"
+              style={{
+                background:
+                  "linear-gradient(165deg, #fff1f2 0%, #ffe4e6 40%, #fecdd3 100%)",
+              }}
+            >
+              <div className="px-5 pt-5 pb-4">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 bg-black rounded-lg flex items-center justify-center">
+                      <Heart
+                        className="w-3.5 h-3.5 text-white"
+                        fill="currentColor"
+                        strokeWidth={0}
+                      />
+                    </div>
+                    <span className="font-black text-sm uppercase tracking-tight">
+                      DateDrop
+                    </span>
+                  </div>
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-black/40">
+                    Date Plan
+                  </span>
+                </div>
+                <div className="text-center mb-5">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-black/40 mb-2">
+                    A date between
+                  </p>
+                  <p className="text-2xl font-black uppercase tracking-tight leading-none">
+                    {senderName}
+                  </p>
+                  <div className="flex items-center justify-center gap-3 my-2">
+                    <div className="h-[2px] w-8 bg-black/20 rounded-full" />
+                    <Heart
+                      className="w-4 h-4 text-rose-400"
+                      fill="currentColor"
+                      strokeWidth={0}
+                    />
+                    <div className="h-[2px] w-8 bg-black/20 rounded-full" />
+                  </div>
+                  <p className="text-2xl font-black uppercase tracking-tight leading-none">
+                    {receiverName}
+                  </p>
+                </div>
+              </div>
+              <div className="mx-4 mb-4 bg-white rounded-2xl border-[2px] border-black p-4 space-y-3">
+                {date && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-[#dcfce7] border-2 border-black rounded-xl flex items-center justify-center flex-shrink-0">
+                      <CalendarIcon className="w-4 h-4" strokeWidth={2.5} />
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-black/40">
+                        When
+                      </p>
+                      <p className="text-sm font-black leading-tight">
+                        {new Date(date + "T12:00:00").toLocaleDateString(
+                          "en-US",
+                          { weekday: "long", month: "long", day: "numeric" },
+                        )}
+                      </p>
+                      {time && (
+                        <p className="text-xs font-bold text-black/50">
+                          {time}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {food && (
+                  <>
+                    <div className="h-[1px] bg-black/5" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 bg-[#fef9c3] border-2 border-black rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Utensils className="w-4 h-4" strokeWidth={2.5} />
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-black/40">
+                          Eating
+                        </p>
+                        <p className="text-sm font-black">{food}</p>
+                      </div>
+                    </div>
+                  </>
+                )}
+                {vibe && (
+                  <>
+                    <div className="h-[1px] bg-black/5" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 bg-[#e0f2fe] border-2 border-black rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Star className="w-4 h-4" strokeWidth={2.5} />
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-black/40">
+                          Activity
+                        </p>
+                        <p className="text-sm font-black">{vibe}</p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="px-5 pb-4 text-center">
+                <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-black/30">
+                  Made with DateDrop
+                </p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="flex flex-col gap-3 w-full"
+            >
+              <motion.button
+                whileHover={{ y: -2, scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={handleAccept}
+                className="w-full py-4 bg-black text-white font-black text-lg uppercase rounded-2xl border-[3px] border-black shadow-brutal flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Check className="w-5 h-5" strokeWidth={4} />
+                I&apos;m in! Let&apos;s do this
+              </motion.button>
+              <RunawayNoButton onGiveUp={() => {}} />
+            </motion.div>
+          </motion.div>
+        )}
+
+        {/* PHASE 6: CELEBRATION */}
+        {phase === "celebration" && (
+          <motion.div
+            key="celebration"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="flex flex-col items-center text-center px-6 gap-6 w-full max-w-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{
+                delay: 0.2,
+                type: "spring",
+                stiffness: 300,
+                damping: 15,
+              }}
+              className="w-20 h-20 bg-[#dcfce7] border-[3px] border-black rounded-full flex items-center justify-center shadow-brutal"
+            >
+              <PartyPopper className="w-10 h-10" strokeWidth={2} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <h1
+                className="text-5xl font-black tracking-tighter leading-none mb-2"
+                style={{ fontFamily: "var(--font-fredoka, var(--font-inter))" }}
+              >
+                It&apos;s a Date!
+              </h1>
+              <p className="text-base font-bold text-gray-500">
+                You just made {senderName}&apos;s day 💛
+              </p>
+            </motion.div>
+
+            {date && time && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+                className="w-full bg-white border-[3px] border-black rounded-2xl p-4 shadow-brutal flex items-center gap-3"
+              >
+                <div className="w-11 h-11 bg-[#dcfce7] border-2 border-black rounded-xl flex items-center justify-center flex-shrink-0">
+                  <CalendarIcon className="w-5 h-5" strokeWidth={2.5} />
+                </div>
+                <div className="text-left">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    Locked in
+                  </p>
+                  <p className="font-black text-sm leading-tight">
+                    {new Date(date + "T12:00:00").toLocaleDateString("en-US", {
+                      weekday: "long",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                  <p className="text-xs font-bold text-gray-500">{time}</p>
+                </div>
+              </motion.div>
+            )}
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.0 }}
+              className="flex flex-col gap-3 w-full"
+            >
+              {calUrl && (
+                <a
+                  href={calUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3.5 bg-black text-white font-black text-sm uppercase rounded-2xl border-[3px] border-black shadow-brutal hover:-translate-y-0.5 transition-transform flex items-center justify-center gap-2"
+                >
+                  <CalendarIcon className="w-4 h-4" strokeWidth={2.5} />
+                  Add to Calendar
+                </a>
+              )}
+              <button
+                onClick={downloadScreenshot}
+                disabled={screenshotBusy}
+                className="w-full py-3.5 bg-white text-black font-black text-sm uppercase rounded-2xl border-[3px] border-black shadow-brutal hover:-translate-y-0.5 transition-transform flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+              >
+                {screenshotBusy ? "Saving..." : "Save the Invite Card"}
+                <Download className="w-4 h-4" />
+              </button>
+            </motion.div>
+
+            <motion.a
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.3 }}
+              href="/games"
+              className="text-sm font-bold text-gray-400 underline underline-offset-4 hover:text-black transition-colors"
+            >
+              Play games together while you wait →
+            </motion.a>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────
+   CREATOR COMPONENTS
+───────────────────────────────────── */
+/* ── Gender Symbol SVGs (Mars ♂ / Venus ♀ / Transgender ⚧) ─────────── */
+// These use the canonical gender symbol geometry: circle + directional stem
+// Same proportions as Unicode ♂ ♀ ⚧ but hand-tuned for visual weight at 64px
+
+function SymbolMale({ color }: { color: string }) {
+  // Mars symbol: circle + arrow pointing upper-right
+  return (
+    <svg
+      viewBox="0 0 64 64"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-full h-full"
+    >
+      <circle
+        cx="26"
+        cy="38"
+        r="17"
+        stroke={color}
+        strokeWidth="5"
+        fill="none"
+      />
+      <line
+        x1="38"
+        y1="26"
+        x2="56"
+        y2="8"
+        stroke={color}
+        strokeWidth="5"
+        strokeLinecap="round"
+      />
+      <polyline
+        points="44,8 56,8 56,20"
+        stroke={color}
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+function SymbolFemale({ color }: { color: string }) {
+  // Venus symbol: circle + cross pointing down
+  return (
+    <svg
+      viewBox="0 0 64 64"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-full h-full"
+    >
+      <circle
+        cx="32"
+        cy="24"
+        r="17"
+        stroke={color}
+        strokeWidth="5"
+        fill="none"
+      />
+      <line
+        x1="32"
+        y1="41"
+        x2="32"
+        y2="59"
+        stroke={color}
+        strokeWidth="5"
+        strokeLinecap="round"
+      />
+      <line
+        x1="22"
+        y1="52"
+        x2="42"
+        y2="52"
+        stroke={color}
+        strokeWidth="5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function SymbolOther({ color }: { color: string }) {
+  // Transgender symbol: circle + arrow up-right + cross down + small arrow up
+  return (
+    <svg
+      viewBox="0 0 64 64"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-full h-full"
+    >
+      <circle
+        cx="32"
+        cy="32"
+        r="14"
+        stroke={color}
+        strokeWidth="4.5"
+        fill="none"
+      />
+      {/* Mars arrow upper-right */}
+      <line
+        x1="41"
+        y1="23"
+        x2="55"
+        y2="9"
+        stroke={color}
+        strokeWidth="4.5"
+        strokeLinecap="round"
+      />
+      <polyline
+        points="48,9 55,9 55,16"
+        stroke={color}
+        strokeWidth="4.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      {/* Venus cross lower */}
+      <line
+        x1="32"
+        y1="46"
+        x2="32"
+        y2="58"
+        stroke={color}
+        strokeWidth="4.5"
+        strokeLinecap="round"
+      />
+      <line
+        x1="25"
+        y1="53"
+        x2="39"
+        y2="53"
+        stroke={color}
+        strokeWidth="4.5"
+        strokeLinecap="round"
+      />
+      {/* Non-binary arrow straight up */}
+      <line
+        x1="23"
+        y1="23"
+        x2="11"
+        y2="11"
+        stroke={color}
+        strokeWidth="4.5"
+        strokeLinecap="round"
+      />
+      <polyline
+        points="11,18 11,11 18,11"
+        stroke={color}
+        strokeWidth="4.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+// Placeholder — replaced below, kept so no parse error
+function GenderPicker({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const options = [
+    {
+      id: "male",
+      title: "Man",
+      pronoun: "He / Him",
+      Symbol: SymbolMale,
+      idleColor: "#2563EB",
+      idleBg: "#EFF6FF",
+      selectedColor: "#fff",
+      selectedBg: "#2563EB",
+      selectedBorder: "#1D4ED8",
+    },
+    {
+      id: "female",
+      title: "Woman",
+      pronoun: "She / Her",
+      Symbol: SymbolFemale,
+      idleColor: "#DB2777",
+      idleBg: "#FDF2F8",
+      selectedColor: "#fff",
+      selectedBg: "#DB2777",
+      selectedBorder: "#BE185D",
+    },
+    {
+      id: "other",
+      title: "Non-binary",
+      pronoun: "They / Them",
+      Symbol: SymbolOther,
+      idleColor: "#7C3AED",
+      idleBg: "#F5F3FF",
+      selectedColor: "#fff",
+      selectedBg: "#7C3AED",
+      selectedBorder: "#6D28D9",
+    },
+  ];
+
+  return (
+    <div>
+      <p className="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-3">
+        {label}
+      </p>
+
+      <div className="flex gap-2.5">
+        {options.map((opt) => {
+          const sel = value === opt.id;
+          return (
+            <motion.button
+              key={opt.id}
+              type="button"
+              onClick={() => onChange(opt.id)}
+              whileHover={!sel ? { y: -3 } : {}}
+              whileTap={{ scale: 0.96 }}
+              transition={{ type: "spring", stiffness: 380, damping: 22 }}
+              className="flex-1 flex flex-col items-center gap-3 py-5 px-2 rounded-2xl border-[3px] cursor-pointer select-none relative overflow-hidden"
+              style={{
+                background: sel ? opt.selectedBg : opt.idleBg,
+                borderColor: sel ? opt.selectedBorder : "transparent",
+                boxShadow: sel
+                  ? `0 6px 20px ${opt.selectedBg}55, 0 2px 8px ${opt.selectedBg}33`
+                  : "0 2px 8px rgba(0,0,0,0.06)",
+                outline: "none",
+              }}
+            >
+              {/* Subtle radial glow behind symbol when selected */}
+              {sel && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.6 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: `radial-gradient(ellipse at 50% 40%, ${opt.selectedColor}22 0%, transparent 70%)`,
+                  }}
+                />
+              )}
+
+              {/* Symbol */}
+              <div className="w-10 h-10 relative z-10">
+                <opt.Symbol color={sel ? opt.selectedColor : opt.idleColor} />
+              </div>
+
+              {/* Text */}
+              <div className="flex flex-col items-center gap-0.5 relative z-10">
+                <span
+                  className="font-black text-xs uppercase tracking-wider leading-none"
+                  style={{ color: sel ? "#fff" : "#111" }}
+                >
+                  {opt.title}
+                </span>
+                <span
+                  className="text-[9px] font-bold leading-none"
+                  style={{ color: sel ? "rgba(255,255,255,0.75)" : "#9CA3AF" }}
+                >
+                  {opt.pronoun}
+                </span>
+              </div>
+
+              {/* Selected checkmark dot */}
+              <AnimatePresence>
+                {sel && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 28 }}
+                    className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/30 flex items-center justify-center"
+                  >
+                    <Check
+                      className="w-3 h-3"
+                      style={{ color: opt.selectedColor }}
+                      strokeWidth={3.5}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function BentoCard({
+  label,
+  icon: Icon,
+  bg,
+  selected,
+  onClick,
+  readOnly,
+  desc,
+}: {
+  label: string;
+  icon: LucideIcon;
+  bg: string;
+  selected: boolean;
+  onClick?: () => void;
+  readOnly?: boolean;
+  desc?: string;
+}) {
+  return (
+    <motion.div
+      onClick={!readOnly ? onClick : undefined}
+      whileHover={!readOnly ? { y: -3 } : {}}
+      whileTap={!readOnly ? { scale: 0.97 } : {}}
+      className={`bento-card ${bg} ${selected ? "selected" : ""} border-black rounded-2xl transition-shadow ${readOnly ? "cursor-default pointer-events-none" : "cursor-pointer"}`}
+      style={{ minHeight: "120px" }}
+    >
+      <span className="font-black text-sm text-center w-full mt-1.5 leading-tight uppercase">
+        {label}
+      </span>
+      <div className="flex-1 flex items-center justify-center py-2">
+        <Icon className="w-9 h-9 text-black opacity-90" strokeWidth={2} />
+      </div>
+      {desc && (
+        <span className="text-[9px] font-bold text-black/40 text-center w-full leading-tight mb-1">
+          {desc}
+        </span>
+      )}
+      <div
+        className={`check-indicator absolute bottom-2 right-2 ${readOnly ? "opacity-50" : ""}`}
+      >
+        <Check className="w-3.5 h-3.5 text-white" strokeWidth={4} />
+      </div>
+    </motion.div>
+  );
+}
+
+function CustomBentoCard({
+  value,
+  onChange,
+  onSelect,
+  selected,
+  placeholder,
+  bg,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  onSelect: (v: string) => void;
+  selected: boolean;
+  placeholder: string;
+  bg: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleOpen = () => {
+    setOpen(true);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  const handleConfirm = () => {
+    if (value.trim()) {
+      onSelect(value.trim());
+    }
+    setOpen(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleConfirm();
+    if (e.key === "Escape") setOpen(false);
+  };
 
   return (
     <motion.div
-      aria-hidden="true"
-      className="deco-line"
-      style={{
-        ...(vertical
-          ? { width: 2, height: 80 }
-          : { width: 80, height: 2 }),
-        ...style,
-        x, y
-      }}
-    />
+      whileHover={!open ? { y: -3 } : {}}
+      whileTap={!open ? { scale: 0.97 } : {}}
+      className={`bento-card ${
+        selected && !open ? "selected" : ""
+      } ${bg} border-black rounded-2xl transition-shadow cursor-pointer`}
+      style={{ minHeight: "120px" }}
+      onClick={!open ? handleOpen : undefined}
+    >
+      {!open ? (
+        // Collapsed — show icon + label
+        <>
+          <span className="font-black text-sm text-center w-full mt-1.5 leading-tight uppercase">
+            {selected && value ? value : "Custom"}
+          </span>
+          <div className="flex-1 flex items-center justify-center py-2">
+            <PenLine
+              className="w-9 h-9 text-black opacity-70"
+              strokeWidth={1.8}
+            />
+          </div>
+          <span className="text-[9px] font-bold text-black/40 text-center w-full leading-tight mb-1">
+            {selected && value ? "Your choice ✓" : "Write your own"}
+          </span>
+          <div
+            className={`check-indicator absolute bottom-2 right-2 ${selected && value ? "opacity-100 scale-100" : ""}`}
+          >
+            <Check className="w-3.5 h-3.5 text-white" strokeWidth={4} />
+          </div>
+        </>
+      ) : (
+        // Expanded — inline input
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full h-full flex flex-col items-center justify-center gap-3 px-3 py-3"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <input
+            ref={inputRef}
+            type="text"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            maxLength={32}
+            className="w-full text-center font-black text-sm bg-white border-[2px] border-black rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1 placeholder:text-gray-300"
+          />
+          <div className="flex gap-2 w-full">
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="flex-1 py-1.5 bg-white border-[2px] border-black rounded-lg font-black text-xs uppercase hover:bg-gray-50 transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirm}
+              disabled={!value.trim()}
+              className="flex-1 py-1.5 bg-black text-white border-[2px] border-black rounded-lg font-black text-xs uppercase disabled:bg-gray-300 disabled:border-gray-300 cursor-pointer disabled:cursor-not-allowed"
+            >
+              Set
+            </button>
+          </div>
+        </motion.div>
+      )}
+    </motion.div>
   );
 }
 
-function ThemeScene({
-  label,
-  index = 0,
+function StepHeading({
+  number,
+  title,
+  subtitle,
 }: {
-  label: string;
-  index?: number;
+  number: number;
+  title: string;
+  subtitle?: string;
 }) {
-  const { scrollY } = useScroll();
-  const start = (index - 1) * SCROLL_PER_WORLD;
-  const end = (index + 1) * SCROLL_PER_WORLD;
-  const x = useTransform(scrollY, [start, end], [26, -26]);
-  const y = useTransform(scrollY, [start, end], [-14, 14]);
-
   return (
-    <motion.div className="theme-scene" style={{ x, y }} aria-hidden="true">
-      <div className="theme-scene-frame">
-        <span>{label}</span>
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="flex flex-col gap-1.5 mb-7 mt-2 max-w-2xl"
+    >
+      <div className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center font-black text-sm shadow-brutal mb-2">
+        {number}
       </div>
-      <div className="theme-scene-orbit" />
-      <div className="theme-scene-rule" />
+      <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter leading-none">
+        {title}
+      </h2>
+      {subtitle && (
+        <p className="text-sm text-gray-500 font-medium mt-1">{subtitle}</p>
+      )}
     </motion.div>
   );
 }
 
 /* ─────────────────────────────────────
-   STAGGER CONTAINER
+   MAIN APP
 ───────────────────────────────────── */
-const staggerContainer = {
-  hidden: {},
-  show: {
-    transition: {
-      staggerChildren: 0.07,
-      delayChildren: 0.05,
-    },
-  },
-};
+export default function DateDropApp() {
+  const [mounted, setMounted] = useState(false);
+  const [appMode, setAppMode] = useState<"creator" | "receiver" | null>(null);
+  const [currentStep, setCurrentStep] = useState(0);
 
-/* ─────────────────────────────────────
-   MAIN PAGE
-───────────────────────────────────── */
-export default function Home() {
-  /* ── State ── */
-  const initialQuickDates = useMemo(() => getQuickDates(), []);
-  const [appMode,    setAppMode]    = useState<"creator" | "receiver">("creator");
-  const [planMode,   setPlanMode]   = useState<"sender_plans" | "receiver_plans">("sender_plans");
+  // Custom picker states
+  const [showCustomDate, setShowCustomDate] = useState(false);
+  const [showCustomTime, setShowCustomTime] = useState(false);
+  const [calMonth, setCalMonth] = useState(() => new Date());
+  const [customHour, setCustomHour] = useState("7");
+  const [customMin, setCustomMin] = useState("00");
+  const [customAmpm, setCustomAmpm] = useState("PM");
+
+  // Form state
   const [senderName, setSenderName] = useState("");
   const [receiverName, setReceiverName] = useState("");
+  const [senderGender, setSenderGender] = useState("");
+  const [receiverGender, setReceiverGender] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [food, setFood] = useState("");
+  const [vibe, setVibe] = useState("");
+  const [customFood, setCustomFood] = useState("");
+  const [customVibe, setCustomVibe] = useState("");
+  const [accepted, setAccepted] = useState(false);
 
-  const [noCount,    setNoCount]    = useState(0);
-  const [date,       setDate]       = useState(initialQuickDates[0].value);
-  const [time,       setTime]       = useState("7:00 PM");
-  const [food,       setFood]       = useState("Italian");
-  const [vibe,       setVibe]       = useState("Romantic");
-  const [theme,      setTheme]      = useState<ThemeId>(DEFAULT_THEME);
-  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
-  const [acceptedReply, setAcceptedReply] = useState(false);
-  const [shared,     setShared]     = useState(false);
-  const [statusMessage, setStatusMessage] = useState("");
-  const [showBurst,  setShowBurst]  = useState(false);
-  const [scrollY,    setScrollY]    = useState(0);
-  const [active,     setActive]     = useState(0);
-  const [maxWorld,   setMaxWorld]   = useState(1);
-  const [navScrolled,setNavScrolled]= useState(false);
-  const [mounted,    setMounted]    = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [planId, setPlanId] = useState("");
+  const [loadedFromHash, setLoadedFromHash] = useState(false);
+  const [creatorSawYes, setCreatorSawYes] = useState(false);
 
-  const stageRef  = useRef<HTMLDivElement>(null);
-  const nameRef   = useRef<HTMLInputElement>(null);
-  const worldCountRef = useRef(1);
-  const themeSwitcherRef = useRef<HTMLDivElement>(null);
-
-  const dateLabel   = useMemo(() => formatDate(date), [date]);
-  const noPrompt    = NO_PROMPTS[Math.min(noCount, NO_PROMPTS.length - 1)];
-  const quickDates   = useMemo(() => getQuickDates(), []);
-  const activeTheme = useMemo(
-    () => THEME_OPTIONS.find((option) => option.id === theme) ?? THEME_OPTIONS[0],
-    [theme],
-  );
-  const themeCopy = THEME_CONTENT[theme];
-  const themeTextValues = useMemo(
-    () => ({
-      sender: senderName.trim() || "Someone",
-      receiver: receiverName.trim() || "you",
-    }),
-    [receiverName, senderName],
-  );
-
-  const parsedDate = useMemo(() => new Date(`${date}T12:00:00`), [date]);
-  const handleWheelDateChange = useCallback((d: Date) => {
-    setDate(toDateValue(d));
+  const dates = useMemo(() => getNextWeekDays(), []);
+  const today = useMemo(() => {
+    const t = new Date();
+    return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
   }, []);
 
-  /* ── Mount & URL Parsing ── */
+  // Screenshot
+  const summaryCardRef = useRef<HTMLDivElement>(null);
+  const [screenshotBusy, setScreenshotBusy] = useState(false);
+
+  const downloadScreenshot = useCallback(async () => {
+    if (!summaryCardRef.current) return;
+    setScreenshotBusy(true);
+    try {
+      const opts = {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: null,
+        logging: false,
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const canvas = await html2canvas(summaryCardRef.current, opts as any);
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          setScreenshotBusy(false);
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "date-plan.png";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        setScreenshotBusy(false);
+      }, "image/png");
+    } catch (e) {
+      console.error("Screenshot failed", e);
+      setScreenshotBusy(false);
+    }
+  }, []);
+
   useEffect(() => {
     setMounted(true);
-    const savedTheme = window.localStorage.getItem("datedrop-theme");
-    if (isThemeId(savedTheme)) {
-      setTheme(savedTheme);
-    }
-
     const hash = window.location.hash.replace("#", "");
     if (hash) {
-      try {
-        const payload = decodeInvitePayload(hash);
-        setAppMode("receiver");
-        setPlanMode(payload.m || "sender_plans");
-        setSenderName(payload.s || "");
-        setReceiverName(payload.r || "");
-        if (payload.d) setDate(payload.d);
-        if (payload.t) setTime(payload.t);
-        if (payload.f) setFood(payload.f);
-        if (payload.v) setVibe(payload.v);
-        if (isThemeId(payload.th)) setTheme(payload.th);
-        setAcceptedReply(payload.a === "accepted");
-      } catch (e) {
-        console.error("Failed to parse invite link", e);
+      const isObjectId = /^[a-f0-9]{24}$/i.test(hash);
+      if (isObjectId) {
+        setPlanId(hash);
+        setLoadedFromHash(true);
+        fetch(`/api/plans/${hash}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.senderName) setSenderName(data.senderName);
+            if (data.receiverName) setReceiverName(data.receiverName);
+            if (data.senderGender) setSenderGender(data.senderGender);
+            if (data.receiverGender) setReceiverGender(data.receiverGender);
+            if (data.date) setDate(data.date);
+            if (data.time) setTime(data.time);
+            if (data.food) setFood(data.food);
+            if (data.vibe) setVibe(data.vibe);
+            if (data.accepted) {
+              setAccepted(true);
+              // Creator reopening their own link after receiver accepted
+              // We detect this by checking if there's a "creator" param OR the data has been accepted
+              // For now, show receiver view (accepted state)
+              setAppMode("receiver");
+              // If the plan is accepted and the URL has a "from=creator" marker, show creator celebration
+              const urlParams = new URLSearchParams(window.location.search);
+              if (urlParams.get("from") === "creator") {
+                setCreatorSawYes(true);
+                setAppMode("creator");
+              }
+            } else {
+              setAppMode("receiver");
+            }
+          })
+          .catch((e) => console.error("Failed to load plan", e));
+      } else {
+        try {
+          const payload = decodeInvitePayload(hash);
+          setLoadedFromHash(true);
+          const hasPlan = !!(payload.d || payload.t || payload.f || payload.v);
+          setAppMode(hasPlan ? "receiver" : "creator");
+          if (payload.s) setSenderName(payload.s);
+          if (payload.r) setReceiverName(payload.r);
+          if (payload.d) setDate(payload.d);
+          if (payload.t) setTime(payload.t);
+          if (payload.f) setFood(payload.f);
+          if (payload.v) setVibe(payload.v);
+          if (payload.a === "yes") setAccepted(true);
+          if (payload.sg) setSenderGender(payload.sg);
+          if (payload.rg) setReceiverGender(payload.rg);
+        } catch (e) {
+          console.error("Invalid invite link", e);
+        }
       }
-    }
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    if (mounted) {
-      window.localStorage.setItem("datedrop-theme", theme);
-    }
-  }, [mounted, theme]);
-
-  useEffect(() => {
-    if (!themeMenuOpen) return;
-
-    const closeOnOutsidePointer = (event: PointerEvent) => {
-      if (
-        themeSwitcherRef.current &&
-        !themeSwitcherRef.current.contains(event.target as Node)
-      ) {
-        setThemeMenuOpen(false);
-      }
-    };
-
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setThemeMenuOpen(false);
-    };
-
-    document.addEventListener("pointerdown", closeOnOutsidePointer);
-    document.addEventListener("keydown", closeOnEscape);
-
-    return () => {
-      document.removeEventListener("pointerdown", closeOnOutsidePointer);
-      document.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [themeMenuOpen]);
-
-  /* ── Go to world ── */
-  const goTo = useCallback((idx: number) => {
-    const target = clamp(idx, 0, worldCountRef.current - 1);
-    setMaxWorld((m) => Math.max(m, target));
-    setTimeout(() => {
-      window.scrollTo({ top: target * SCROLL_PER_WORLD, behavior: "smooth" });
-    }, 10);
-  }, []);
-
-  /* ── Handle YES ── */
-  const handleYes = useCallback(() => {
-    setShowBurst(true);
-    setTimeout(() => setShowBurst(false), 1200);
-    setTimeout(() => goTo(active + 1), 600);
-  }, [goTo, active]);
-
-  const createInviteLink = useCallback((payloadOverrides: InvitePayload = {}) => {
-    const payload: InvitePayload = {
-      m: planMode,
-      s: senderName.trim(),
-      r: receiverName.trim(),
-      d: date,
-      t: time,
-      f: food,
-      v: vibe,
-      a: acceptedReply ? "accepted" : undefined,
-      th: theme,
-      ...payloadOverrides,
-    };
-    return `${window.location.origin}${window.location.pathname}#${encodeInvitePayload(payload)}`;
-  }, [acceptedReply, date, food, planMode, receiverName, senderName, theme, time, vibe]);
-
-  const showStatus = useCallback((message: string) => {
-    setStatusMessage(message);
-    setShared(true);
-    setTimeout(() => {
-      setShared(false);
-      setStatusMessage("");
-    }, 2500);
-  }, []);
-
-  const handleThemeChange = useCallback((nextTheme: ThemeId) => {
-    const nextThemeLabel = THEME_OPTIONS.find((option) => option.id === nextTheme)?.label ?? "Theme";
-    setTheme(nextTheme);
-    setThemeMenuOpen(false);
-    showStatus(`${nextThemeLabel} applied.`);
-  }, [showStatus]);
-
-  const copyInviteLink = useCallback(async (payloadOverrides?: InvitePayload) => {
-    try {
-      await copyText(createInviteLink(payloadOverrides));
-      showStatus("Link copied.");
-    } catch (error) {
-      console.error("Failed to copy invite link", error);
-      showStatus("Copy failed. Try sharing instead.");
-    }
-  }, [createInviteLink, showStatus]);
-
-  const shareInviteLink = useCallback(async (payloadOverrides?: InvitePayload) => {
-    const url = createInviteLink(payloadOverrides);
-    const text = `${receiverName || "Someone special"}, ${senderName || "someone"} sent you a DateDrop invite.`;
-
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: "DateDrop", text, url });
-        showStatus("Invite shared.");
-        return;
-      }
-    } catch (error) {
-      if (isAbortError(error)) return;
-      console.error("Failed to share invite link", error);
-    }
-
-    try {
-      await copyText(url);
-      showStatus("Link copied.");
-    } catch (error) {
-      console.error("Failed to copy invite link fallback", error);
-      showStatus("Share failed. Copy the page URL manually.");
-    }
-  }, [createInviteLink, receiverName, senderName, showStatus]);
-
-  const saveCalendarInvite = useCallback(() => {
-    const start = parseInviteDateTime(date, time);
-    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
-    const partnerName = acceptedReply ? receiverName : senderName;
-    const title = `Date with ${partnerName || "DateDrop"}`;
-    const description = `${food} · ${vibe} vibe\nCreated with DateDrop`;
-    const ics = [
-      "BEGIN:VCALENDAR",
-      "VERSION:2.0",
-      "PRODID:-//DateDrop//Invitation//EN",
-      "BEGIN:VEVENT",
-      `UID:${globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`}@datedrop.local`,
-      `DTSTAMP:${formatIcsDate(new Date())}`,
-      `DTSTART:${formatIcsDate(start)}`,
-      `DTEND:${formatIcsDate(end)}`,
-      `SUMMARY:${escapeIcsText(title)}`,
-      `DESCRIPTION:${escapeIcsText(description)}`,
-      "END:VEVENT",
-      "END:VCALENDAR",
-    ].join("\r\n");
-    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = "datedrop-invite.ics";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-    showStatus("Calendar file saved.");
-  }, [acceptedReply, date, food, receiverName, senderName, showStatus, time, vibe]);
-
-  const sharePlanSummary = useCallback(async () => {
-    const text = `It's a date.\n${dateLabel} at ${time}\n${food} · ${vibe} vibe\nSent with DateDrop`;
-
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: "DateDrop", text });
-        showStatus("Details shared.");
-        return;
-      }
-    } catch (error) {
-      if (isAbortError(error)) return;
-      console.error("Failed to share plan summary", error);
-    }
-
-    try {
-      await copyText(text);
-      showStatus("Details copied.");
-    } catch (error) {
-      console.error("Failed to copy plan summary fallback", error);
-      showStatus("Share failed. Copy the details manually.");
-    }
-  }, [dateLabel, food, showStatus, time, vibe]);
-
-
-  /* ── Worlds Array Logic ── */
-  const worlds = useMemo(() => {
-    const list: React.ReactNode[] = [];
-    const inactiveProps = (idx: number) => ({
-      "aria-hidden": active !== idx,
-      inert: active !== idx ? true : undefined,
-    });
-
-    // Helper functions for common sections
-    const pushDate = () => {
-      const idx = list.length;
-      const copy = themeCopy.date;
-      list.push(
-      <article className={`world world-${idx}`} aria-label="Choose a date" key="w-date" {...inactiveProps(idx)}>
-        <DecoWord word={copy.deco} index={idx} opacity={0.04} />
-        <ThemeScene label={copy.scene} index={idx} />
-        <RedLine style={{ top: "22%", left: "8%", width: 50, opacity: 0.15 }} vertical index={idx} />
-        <motion.div className="world-content interactive" variants={staggerContainer} initial="hidden" animate={active === idx ? "show" : "hidden"}>
-          <motion.div className="world-label" variants={fadeUp} custom={0}>{copy.label}</motion.div>
-          <motion.div variants={fadeUp} custom={1} aria-hidden="true"><CalendarDays className="w-8 h-8 mb-4" style={{ color: "var(--red)", opacity: 0.7 }} /></motion.div>
-          <motion.h2 className="world-title" variants={fadeUp} custom={2}>{renderThemeHeadline(copy, themeTextValues)}</motion.h2>
-          <motion.div className="chip-row" variants={fadeUp} custom={3}>
-            {quickDates.map(qd => (
-              <button key={qd.value} className={`chip ${date === qd.value ? "selected" : ""}`} onClick={() => setDate(qd.value)} aria-pressed={date === qd.value}>{qd.label}</button>
-            ))}
-          </motion.div>
-          <motion.div variants={fadeUp} custom={4} style={{ marginTop: 24, marginBottom: 12 }}>
-            <DateWheelPicker value={parsedDate} onChange={handleWheelDateChange} size="md" minYear={2026} maxYear={2028} />
-          </motion.div>
-          <AnimatePresence mode="wait">
-            {date && <motion.p key={date} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ marginTop: 12, fontSize: 14, fontWeight: 600, color: "var(--red)", opacity: 0.7 }}>{dateLabel}</motion.p>}
-          </AnimatePresence>
-          <motion.div variants={fadeUp} custom={5} style={{ marginTop: 24 }}>
-            <button className="btn-primary" onClick={() => date && goTo(idx + 1)} disabled={!date}>{copy.cta} <ArrowRight className="w-4 h-4" aria-hidden="true" /></button>
-          </motion.div>
-        </motion.div>
-        <div className="world-wall" aria-hidden="true" />
-      </article>
-      );
-    };
-
-    const pushTime = () => {
-      const idx = list.length;
-      const copy = themeCopy.time;
-      list.push(
-      <article className={`world world-${idx}`} aria-label="Choose a time" key="w-time" {...inactiveProps(idx)}>
-        <DecoWord word={copy.deco} index={idx} opacity={0.035} />
-        <ThemeScene label={copy.scene} index={idx} />
-        <motion.div className="world-content interactive" variants={staggerContainer} initial="hidden" animate={active === idx ? "show" : "hidden"}>
-          <motion.div className="world-label" variants={fadeUp} custom={0}>{copy.label}</motion.div>
-          <motion.div variants={fadeUp} custom={1} aria-hidden="true"><Clock3 className="w-8 h-8 mb-4" style={{ color: "var(--red)", opacity: 0.7 }} /></motion.div>
-          <motion.h2 className="world-title" variants={fadeUp} custom={2}>{renderThemeHeadline(copy, themeTextValues)}</motion.h2>
-          {copy.body && <motion.p className="world-body" variants={fadeUp} custom={3}>{fillThemeText(copy.body, themeTextValues)}</motion.p>}
-          <motion.div variants={fadeUp} custom={4} style={{ marginTop: 24 }}>
-            <TimeWheelPicker value={time} onChange={setTime} size="md" />
-          </motion.div>
-          <motion.div variants={fadeUp} custom={5} style={{ marginTop: 28 }}>
-            <button className="btn-primary" onClick={() => goTo(idx + 1)}>{copy.cta} <ArrowRight className="w-4 h-4" aria-hidden="true" /></button>
-          </motion.div>
-        </motion.div>
-        <div className="world-wall" aria-hidden="true" />
-      </article>
-      );
-    };
-
-    const pushFood = () => {
-      const idx = list.length;
-      const copy = themeCopy.food;
-      list.push(
-      <article className={`world world-${idx}`} aria-label="Choose food preference" key="w-food" {...inactiveProps(idx)}>
-        <DecoWord word={copy.deco} opacity={0.04} index={idx} />
-        <ThemeScene label={copy.scene} index={idx} />
-        <motion.div className="world-content interactive" variants={staggerContainer} initial="hidden" animate={active === idx ? "show" : "hidden"} style={{ maxWidth: 640 }}>
-          <motion.div className="world-label" variants={fadeUp} custom={0}>{copy.label}</motion.div>
-          <motion.h2 className="world-title" variants={fadeUp} custom={1} style={{ fontSize: "clamp(32px, 5vw, 60px)", marginBottom: 12 }}>{renderThemeHeadline(copy, themeTextValues)}</motion.h2>
-          <div className="option-grid">
-            {FOODS.map((f, i) => (
-              <OptionCard key={f.label} icon={f.icon} label={f.label} note={f.note} selected={food === f.label} onClick={() => setFood(f.label)} index={i} />
-            ))}
-          </div>
-          <motion.div variants={fadeUp} custom={8} style={{ marginTop: 24 }}>
-            <button className="btn-primary" onClick={() => goTo(idx + 1)}>{copy.cta} <ArrowRight className="w-4 h-4" aria-hidden="true" /></button>
-          </motion.div>
-        </motion.div>
-        <div className="world-wall" aria-hidden="true" />
-      </article>
-      );
-    };
-
-    const pushVibe = () => {
-      const idx = list.length;
-      const copy = themeCopy.vibe;
-      list.push(
-      <article className={`world world-${idx}`} aria-label="Choose the vibe" key="w-vibe" {...inactiveProps(idx)}>
-        <DecoWord word={copy.deco} opacity={0.05} index={idx} />
-        <ThemeScene label={copy.scene} index={idx} />
-        <motion.div className="world-content interactive" variants={staggerContainer} initial="hidden" animate={active === idx ? "show" : "hidden"} style={{ maxWidth: 640 }}>
-          <motion.div className="world-label" variants={fadeUp} custom={0}>{copy.label}</motion.div>
-          <motion.h2 className="world-title" variants={fadeUp} custom={1} style={{ fontSize: "clamp(32px, 5vw, 60px)", marginBottom: 12 }}>{renderThemeHeadline(copy, themeTextValues)}</motion.h2>
-          <div className="option-grid">
-            {VIBES.map((v, i) => (
-              <OptionCard key={v.label} icon={v.icon} label={v.label} note={v.note} selected={vibe === v.label} onClick={() => setVibe(v.label)} index={i} />
-            ))}
-          </div>
-          <motion.div variants={fadeUp} custom={9} style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 24 }}>
-            <button className="btn-primary" onClick={() => goTo(idx + 1)}>{copy.cta} <ArrowRight className="w-4 h-4" aria-hidden="true" /></button>
-          </motion.div>
-        </motion.div>
-        <div className="world-wall" aria-hidden="true" />
-      </article>
-      );
-    };
-
-    if (appMode === "creator") {
-      const idx0 = list.length;
-      const heroCopy = themeCopy.creatorHero;
-      list.push(
-        <article className={`world world-${idx0}`} aria-label="Welcome" key="c-w0" {...inactiveProps(idx0)}>
-          <DecoWord word={heroCopy.deco} index={idx0} opacity={0.04} />
-          <ThemeScene label={heroCopy.scene} index={idx0} />
-          <RedLine style={{ top: "30%", right: "12%", opacity: 0.12, width: 120 }} index={idx0} />
-          <RedLine style={{ top: "32%", right: "12%", opacity: 0.08, width: 80 }} vertical index={idx0} />
-          <motion.div className="world-content interactive" variants={staggerContainer} initial="hidden" animate={active === idx0 ? "show" : "hidden"}>
-            <motion.div className="world-label" variants={fadeUp} custom={0}>{heroCopy.label}</motion.div>
-            <motion.h1 className="world-title" variants={fadeUp} custom={1}>{renderThemeHeadline(heroCopy, themeTextValues)}</motion.h1>
-            {heroCopy.body && <motion.p className="world-body" variants={fadeUp} custom={2}>{fillThemeText(heroCopy.body, themeTextValues)}</motion.p>}
-            <motion.div variants={fadeUp} custom={3} style={{ marginTop: 36 }}>
-              <button className="btn-primary" onClick={() => goTo(idx0 + 1)}>{heroCopy.cta} <ArrowRight className="w-4 h-4" aria-hidden="true" /></button>
-            </motion.div>
-          </motion.div>
-          <div className="world-wall" aria-hidden="true" />
-        </article>
-      );
-
-      const idx1 = list.length;
-      const namesCopy = themeCopy.names;
-      list.push(
-        <article className={`world world-${idx1}`} aria-label="Names" key="c-w1" {...inactiveProps(idx1)}>
-          <DecoWord word={namesCopy.deco} index={idx1} opacity={0.035} />
-          <ThemeScene label={namesCopy.scene} index={idx1} />
-          <motion.div className="world-content interactive" variants={staggerContainer} initial="hidden" animate={active === idx1 ? "show" : "hidden"}>
-            <motion.div className="world-label" variants={fadeUp} custom={0}>{namesCopy.label}</motion.div>
-            <motion.h2 className="world-title" variants={fadeUp} custom={1}>{renderThemeHeadline(namesCopy, themeTextValues)}</motion.h2>
-            <motion.div variants={fadeUp} custom={2} style={{ marginTop: 28, display: "flex", flexDirection: "column", gap: 24, maxWidth: 300 }}>
-              <div>
-                <label htmlFor="sender-name" className="text-sm font-semibold opacity-70 mb-2 block">Your name (Sender)</label>
-                <input id="sender-name" ref={nameRef} type="text" className="world-input" value={senderName} onChange={e => setSenderName(e.target.value)} placeholder="e.g. John" autoComplete="name" />
-              </div>
-              <div>
-                <label htmlFor="receiver-name" className="text-sm font-semibold opacity-70 mb-2 block">Their name (Receiver)</label>
-                <input id="receiver-name" type="text" className="world-input" value={receiverName} onChange={e => setReceiverName(e.target.value)} placeholder="e.g. Jane" autoComplete="name" />
-              </div>
-            </motion.div>
-            <motion.div variants={fadeUp} custom={3} style={{ marginTop: 36 }}>
-              <button className="btn-primary" onClick={() => senderName && receiverName && goTo(idx1 + 1)} disabled={!senderName.trim() || !receiverName.trim()}>Continue <ArrowRight className="w-4 h-4" aria-hidden="true" /></button>
-            </motion.div>
-          </motion.div>
-          <div className="world-wall" aria-hidden="true" />
-        </article>
-      );
-
-      const idx2 = list.length;
-      const planCopy = themeCopy.plan;
-      list.push(
-        <article className={`world world-${idx2}`} aria-label="Plan Choice" key="c-w2" {...inactiveProps(idx2)}>
-          <DecoWord word={planCopy.deco} index={idx2} opacity={0.035} />
-          <ThemeScene label={planCopy.scene} index={idx2} />
-          <motion.div className="world-content interactive" variants={staggerContainer} initial="hidden" animate={active === idx2 ? "show" : "hidden"}>
-            <motion.div className="world-label" variants={fadeUp} custom={0}>{planCopy.label}</motion.div>
-            <motion.h2 className="world-title" variants={fadeUp} custom={1}>{renderThemeHeadline(planCopy, themeTextValues)}</motion.h2>
-            <motion.div variants={fadeUp} custom={2} style={{ marginTop: 28, display: "flex", flexDirection: "column", gap: 16 }}>
-              <button className={`chip !block !text-left !px-6 !py-4 ${planMode === 'sender_plans' ? 'selected' : ''}`} onClick={() => setPlanMode('sender_plans')} aria-pressed={planMode === "sender_plans"}>
-                <strong className="block mb-1 text-lg">I will plan it</strong>
-                <span className="text-sm opacity-70">You pick the date, time, food, and vibe.</span>
-              </button>
-              <button className={`chip !block !text-left !px-6 !py-4 ${planMode === 'receiver_plans' ? 'selected' : ''}`} onClick={() => setPlanMode('receiver_plans')} aria-pressed={planMode === "receiver_plans"}>
-                <strong className="block mb-1 text-lg">Let them decide</strong>
-                <span className="text-sm opacity-70">They will pick the date, time, food, and vibe.</span>
-              </button>
-            </motion.div>
-            <motion.div variants={fadeUp} custom={3} style={{ marginTop: 36 }}>
-              <button className="btn-primary" onClick={() => goTo(idx2 + 1)}>Continue <ArrowRight className="w-4 h-4" aria-hidden="true" /></button>
-            </motion.div>
-          </motion.div>
-          <div className="world-wall" aria-hidden="true" />
-        </article>
-      );
-
-      if (planMode === "sender_plans") {
-        pushDate();
-        pushTime();
-        pushFood();
-        pushVibe();
-      }
-
-      const idxFinal = list.length;
-      const finalCopy = themeCopy.creatorFinal;
-      list.push(
-        <article className={`world world-${idxFinal}`} aria-label="Link Generation" key="c-final" {...inactiveProps(idxFinal)}>
-          <DecoWord word={finalCopy.deco} index={idxFinal} opacity={0.05} />
-          <ThemeScene label={finalCopy.scene} index={idxFinal} />
-          <motion.div className="world-content interactive" variants={staggerContainer} initial="hidden" animate={active === idxFinal ? "show" : "hidden"}>
-            <motion.div className="world-label" variants={fadeUp} custom={0}>{finalCopy.label}</motion.div>
-            <motion.h2 className="world-title" variants={fadeUp} custom={1}>{renderThemeHeadline(finalCopy, themeTextValues)}</motion.h2>
-            {finalCopy.body && <motion.p className="world-body" variants={fadeUp} custom={2}>{fillThemeText(finalCopy.body, { ...themeTextValues, receiver: receiverName || "them" })}</motion.p>}
-            <motion.div variants={fadeUp} custom={3} className="action-row">
-              <button className="btn-primary" onClick={() => copyInviteLink()}>
-                <Copy className="w-4 h-4" aria-hidden="true" />
-                {shared ? "Copied!" : "Copy Link"}
-              </button>
-              <button className="btn-ghost" onClick={() => shareInviteLink()}>
-                <Share2 className="w-4 h-4" aria-hidden="true" />
-                Share Invite
-              </button>
-            </motion.div>
-          </motion.div>
-          <div className="world-wall" aria-hidden="true" />
-        </article>
-      );
     } else {
-      // RECEIVER MODE
-      const pushSummary = () => {
-        const idx = list.length;
-        const copy = themeCopy.summary;
-        list.push(
-          <article className={`world world-${idx}`} aria-label="Summary" key="r-summary" {...inactiveProps(idx)}>
-            <DecoWord word={copy.deco} opacity={0.05} index={idx} />
-            <ThemeScene label={copy.scene} index={idx} />
-            <motion.div className="world-content interactive" variants={staggerContainer} initial="hidden" animate={active === idx ? "show" : "hidden"} style={{ maxWidth: 640 }}>
-              <motion.div className="world-label" variants={fadeUp} custom={0}>{acceptedReply ? "Reply received" : copy.label}</motion.div>
-              <motion.h2 className="world-title" variants={fadeUp} custom={1} style={{ fontSize: "clamp(32px, 5vw, 60px)", marginBottom: 12 }}>{renderThemeHeadline(copy, themeTextValues)}</motion.h2>
-              <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0, transition: { delay: 0.15, duration: 0.45, ease: [0.0, 0.0, 0.2, 1] } }} className="summary-card mt-8">
-                <div className="summary-header">With {acceptedReply ? receiverName : senderName}</div>
-                {[
-                  { label: "Day",  value: dateLabel },
-                  { label: "Time", value: time      },
-                  { label: "Food", value: food      },
-                  { label: "Vibe", value: vibe      },
-                ].map(row => (
-                  <div key={row.label} className="summary-row">
-                    <dt className="summary-label">{row.label}</dt>
-                    <dd className="summary-value">{row.value}</dd>
-                  </div>
-                ))}
+      if (dates.length > 0 && !date) setDate(dates[0].fullVal);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const totalSteps = 4;
+
+  const generateLink = async () => {
+    let apiSucceeded = false;
+    try {
+      const res = await fetch("/api/plans", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          senderName: senderName.trim(),
+          receiverName: receiverName.trim(),
+          senderGender,
+          receiverGender,
+          date,
+          time,
+          food,
+          vibe,
+          accepted,
+        }),
+      });
+      const data = await res.json();
+      if (data.id) {
+        apiSucceeded = true;
+        setPlanId(data.id);
+        const url = `${window.location.origin}${window.location.pathname}#${data.id}`;
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: `DateDrop — A date for ${receiverName}`,
+              text: `Hey ${receiverName}! I planned something for us 💌`,
+              url,
+            });
+          } catch {
+            await copyToClipboard(url);
+          }
+        } else {
+          await copyToClipboard(url);
+        }
+        setLinkCopied(true);
+        setTimeout(() => setLinkCopied(false), 3000);
+      }
+    } catch (e) {
+      console.error("Failed to save plan, using fallback link", e);
+    }
+    if (!apiSucceeded) {
+      const payload: InvitePayload = {
+        s: senderName.trim(),
+        r: receiverName.trim(),
+        d: date,
+        t: time,
+        f: food,
+        v: vibe,
+        a: accepted ? "yes" : undefined,
+        sg: senderGender || undefined,
+        rg: receiverGender || undefined,
+      };
+      const url = `${window.location.origin}${window.location.pathname}#${encodeInvitePayload(payload)}`;
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: `DateDrop — A date for ${receiverName}`,
+            text: `Hey ${receiverName}! I planned something for us 💌`,
+            url,
+          });
+        } catch {
+          await copyToClipboard(url);
+        }
+      } else {
+        await copyToClipboard(url);
+      }
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 3000);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentStep < totalSteps) setCurrentStep((p) => p + 1);
+  };
+  const handleBack = () => {
+    if (currentStep > 0) setCurrentStep((p) => p - 1);
+  };
+
+  const isStepComplete = () => {
+    if (!appMode) return false;
+    switch (currentStep) {
+      case 0:
+        return senderName.trim() !== "" && receiverName.trim() !== "";
+      case 1:
+        return date !== "" && time !== "";
+      case 2:
+        return food !== "";
+      case 3:
+        return vibe !== "";
+      default:
+        return true;
+    }
+  };
+
+  const renderDateTimePickers = () => (
+    <>
+      <div className="mb-8 max-w-3xl">
+        <h3 className="font-black text-base md:text-lg mb-2.5 uppercase tracking-tight text-gray-700">
+          The Day
+        </h3>
+        <div className="flex items-center justify-start gap-2.5 md:gap-4 overflow-x-auto pb-4 snap-x">
+          {dates.slice(0, 7).map((d) => (
+            <div
+              className="flex flex-col items-center gap-1.5 min-w-[48px] md:min-w-[60px] snap-start"
+              key={d.fullVal}
+            >
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                {d.isToday ? "Today" : d.dayName}
+              </span>
+              <motion.div
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                className={`date-circle w-12 h-12 md:w-14 md:h-14 text-lg font-black cursor-pointer ${date === d.fullVal ? "bg-[#dcfce7] shadow-[inset_0_-10px_0_0_rgba(0,0,0,0.1)] border-[3px] border-black ring-2 ring-black ring-offset-1" : "bg-white border-[3px] border-black"}`}
+                onClick={() => setDate(d.fullVal)}
+              >
+                {d.dateNum}
               </motion.div>
-              <motion.div variants={fadeUp} custom={4} className="action-row">
-                {planMode === "sender_plans" ? (
-                  <>
-                    <button className="btn-primary" onClick={saveCalendarInvite}>
-                      <CalendarPlus className="w-4 h-4" aria-hidden="true" />
-                      {shared ? "Saved!" : "Save Calendar"}
-                    </button>
-                    <button className="btn-ghost" onClick={sharePlanSummary}>
-                      <Share2 className="w-4 h-4" aria-hidden="true" />
-                      Share Details
-                    </button>
-                  </>
+            </div>
+          ))}
+          {(() => {
+            const isCustomDate =
+              date !== "" && !dates.slice(0, 7).some((d) => d.fullVal === date);
+            const displayNum = isCustomDate
+              ? new Date(date + "T12:00:00").getDate()
+              : "";
+            const displayDay = isCustomDate
+              ? new Date(date + "T12:00:00").toLocaleDateString("en-US", {
+                  weekday: "short",
+                })
+              : "Custom";
+            return (
+              <div className="flex flex-col items-center gap-1.5 min-w-[48px] md:min-w-[60px] snap-start">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                  {displayDay}
+                </span>
+                <motion.div
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`cursor-pointer date-circle w-12 h-12 md:w-14 md:h-14 text-lg border-[3px] border-black flex items-center justify-center font-black ${isCustomDate || showCustomDate ? "bg-[#dcfce7] shadow-[inset_0_-10px_0_0_rgba(0,0,0,0.1)]" : "bg-white"}`}
+                  onClick={() => setShowCustomDate(!showCustomDate)}
+                >
+                  {isCustomDate ? (
+                    displayNum
+                  ) : (
+                    <CalendarIcon
+                      className="w-4 h-4 md:w-5 md:h-5"
+                      strokeWidth={3}
+                    />
+                  )}
+                </motion.div>
+              </div>
+            );
+          })()}
+        </div>
+
+        <AnimatePresence>
+          {showCustomDate && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-3 p-4 border-[3px] border-black rounded-2xl bg-white shadow-brutal w-full max-w-xs md:max-w-sm overflow-hidden"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <button
+                  onClick={() =>
+                    setCalMonth(
+                      new Date(
+                        calMonth.getFullYear(),
+                        calMonth.getMonth() - 1,
+                        1,
+                      ),
+                    )
+                  }
+                  className="w-8 h-8 border-2 border-black rounded-full flex items-center justify-center hover:bg-gray-100 cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" strokeWidth={3} />
+                </button>
+                <span className="font-black text-sm uppercase tracking-widest">
+                  {calMonth.toLocaleDateString("en-US", {
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </span>
+                <button
+                  onClick={() =>
+                    setCalMonth(
+                      new Date(
+                        calMonth.getFullYear(),
+                        calMonth.getMonth() + 1,
+                        1,
+                      ),
+                    )
+                  }
+                  className="w-8 h-8 border-2 border-black rounded-full flex items-center justify-center hover:bg-gray-100 cursor-pointer"
+                >
+                  <ChevronRight className="w-4 h-4" strokeWidth={3} />
+                </button>
+              </div>
+              <div className="grid grid-cols-7 gap-1 mb-1.5 text-center font-black text-gray-400 text-[10px]">
+                {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
+                  <div key={day}>{day}</div>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-1">
+                {(() => {
+                  const year = calMonth.getFullYear();
+                  const month = calMonth.getMonth();
+                  const firstDay = new Date(year, month, 1).getDay();
+                  const daysInMonth = new Date(year, month + 1, 0).getDate();
+                  const blanks = Array.from({ length: firstDay }).map(
+                    (_, i) => <div key={`b-${i}`} />,
+                  );
+                  const days = Array.from({ length: daysInMonth }).map(
+                    (_, i) => {
+                      const dayNum = i + 1;
+                      const fullVal = `${year}-${String(month + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
+                      const isSelected = date === fullVal;
+                      const isPast = fullVal < today;
+                      return (
+                        <button
+                          key={dayNum}
+                          onClick={() => {
+                            if (!isPast) {
+                              setDate(fullVal);
+                              setShowCustomDate(false);
+                            }
+                          }}
+                          disabled={isPast}
+                          className={`aspect-square flex items-center justify-center rounded-full font-bold text-sm border-2 transition-all cursor-pointer ${isSelected ? "bg-black text-white border-black" : isPast ? "text-gray-300 border-transparent cursor-not-allowed" : "border-transparent hover:border-black hover:bg-gray-50"}`}
+                        >
+                          {dayNum}
+                        </button>
+                      );
+                    },
+                  );
+                  return [...blanks, ...days];
+                })()}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <div className="max-w-3xl">
+        <h3 className="font-black text-base md:text-lg mb-2.5 uppercase tracking-tight text-gray-700">
+          The Hour
+        </h3>
+        <div className="flex flex-wrap gap-2.5">
+          {TIMES.map((t) => (
+            <motion.div
+              key={t}
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setTime(t)}
+              className={`px-4 py-2.5 border-[3px] border-black rounded-2xl font-black text-base text-center cursor-pointer transition-all ${time === t ? "bg-[#e0f2fe] shadow-[inset_0_-5px_0_0_rgba(0,0,0,0.1)] translate-y-0.5" : "bg-white shadow-brutal"}`}
+            >
+              {t}
+            </motion.div>
+          ))}
+          {(() => {
+            const isCustomTime = time !== "" && !TIMES.includes(time);
+            return (
+              <motion.div
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                className={`relative px-4 py-2.5 border-[3px] border-black rounded-2xl font-black text-base text-center cursor-pointer transition-all flex items-center justify-center gap-1.5 ${isCustomTime || showCustomTime ? "bg-[#e0f2fe] shadow-[inset_0_-5px_0_0_rgba(0,0,0,0.1)] translate-y-0.5" : "bg-white shadow-brutal"}`}
+                onClick={() => setShowCustomTime(!showCustomTime)}
+              >
+                {isCustomTime ? (
+                  time
                 ) : (
                   <>
-                    <button className="btn-primary" onClick={() => copyInviteLink({ m: "sender_plans", a: "accepted" })}>
-                      <Link2 className="w-4 h-4" aria-hidden="true" />
-                      {shared ? "Copied!" : "Copy Reply Link"}
-                    </button>
-                    <button className="btn-ghost" onClick={() => shareInviteLink({ m: "sender_plans", a: "accepted" })}>
-                      <Share2 className="w-4 h-4" aria-hidden="true" />
-                      Send Back
-                    </button>
+                    <Clock className="w-4 h-4" strokeWidth={3} /> Custom
                   </>
                 )}
-                <button className="btn-ghost" onClick={() => goTo(0)}>
-                  <RotateCcw className="w-4 h-4" aria-hidden="true" />
-                  Replay
-                </button>
               </motion.div>
-            </motion.div>
-            <div className="world-wall" aria-hidden="true" />
-          </article>
-        );
-      };
-
-      const rIdx0 = list.length;
-      const receiverCopy = themeCopy.receiverHero;
-      list.push(
-        <article className={`world world-${rIdx0}`} aria-label="Welcome" key="r-w0" {...inactiveProps(rIdx0)}>
-          <DecoWord word={receiverCopy.deco} index={rIdx0} opacity={0.04} />
-          <ThemeScene label={receiverCopy.scene} index={rIdx0} />
-          <motion.div className="world-content interactive" variants={staggerContainer} initial="hidden" animate={active === rIdx0 ? "show" : "hidden"}>
-            <motion.div className="world-label" variants={fadeUp} custom={0}>{acceptedReply ? "Reply received" : receiverCopy.label}</motion.div>
-            <motion.h1 className="world-title" variants={fadeUp} custom={1}>
-              {acceptedReply ? (
-                <>
-                  Reply received,<br/><em>{senderName || "you"}.</em>
-                </>
-              ) : (
-                renderThemeHeadline(receiverCopy, themeTextValues)
-              )}
-            </motion.h1>
-            <motion.p className="world-body" variants={fadeUp} custom={2}>
-              {acceptedReply ? `${receiverName || "They"} said yes and sent the plan back.` : fillThemeText(receiverCopy.body, themeTextValues)}
-            </motion.p>
-            <motion.div variants={fadeUp} custom={3} style={{ marginTop: 36 }}>
-              <button className="btn-primary" onClick={() => goTo(rIdx0 + 1)}>
-                {acceptedReply ? "See the plan" : receiverCopy.cta}
-                <ArrowRight className="w-4 h-4" aria-hidden="true" />
-              </button>
-            </motion.div>
-          </motion.div>
-          <div className="world-wall" aria-hidden="true" />
-        </article>
-      );
-
-      if (acceptedReply) {
-        pushSummary();
-        return list;
-      }
-
-      const rIdx1 = list.length;
-      const questionCopy = themeCopy.question;
-      list.push(
-        <article className={`world world-${rIdx1}`} aria-label="The question" key="r-w1" {...inactiveProps(rIdx1)}>
-          <DecoWord word={questionCopy.deco} index={rIdx1} opacity={0.04} />
-          <ThemeScene label={questionCopy.scene} index={rIdx1} />
-          <motion.div className="world-content interactive" variants={staggerContainer} initial="hidden" animate={active === rIdx1 ? "show" : "hidden"}>
-            {showBurst && <CelebrationBurst />}
-            <motion.div className="world-label" variants={fadeUp} custom={0}>{questionCopy.label}</motion.div>
-            <motion.h2 className="world-title" variants={fadeUp} custom={1}>{renderThemeHeadline(questionCopy, themeTextValues)}</motion.h2>
-            <motion.p className="world-body" variants={fadeUp} custom={2}>{noCount > 0 ? noPrompt : questionCopy.noBody}</motion.p>
-            <motion.div variants={fadeUp} custom={3} style={{ display: "flex", gap: 16, marginTop: 32, alignItems: "center", flexWrap: "wrap", minHeight: 70 }}>
-              <motion.button className="btn-yes" animate={{ scale: 1 + noCount * 0.15, marginRight: noCount * 8 }} transition={{ type: "spring", stiffness: 300, damping: 20 }} onClick={handleYes} style={{ transformOrigin: "left center", zIndex: 10 }}>
-                <Heart className="w-5 h-5" style={{ fill: "rgba(255,255,255,0.5)" }} aria-hidden="true" /> {questionCopy.yes} <Check className="w-5 h-5" aria-hidden="true" />
-              </motion.button>
-              <motion.button className="btn-no" animate={{ scale: Math.max(0.6, 1 - noCount * 0.08), opacity: Math.max(0.4, 1 - noCount * 0.1) }} transition={{ type: "spring", stiffness: 280, damping: 16 }} onClick={() => setNoCount(v => v + 1)}>
-                {questionCopy.no}
-              </motion.button>
-            </motion.div>
-            <AnimatePresence>
-              {noCount >= 5 && planMode === 'sender_plans' && (
-                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ marginTop: 20 }}>
-                  <button className="btn-ghost" onClick={() => goTo(rIdx1 + 2)}>Show me the plan first</button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-          <div className="world-wall" aria-hidden="true" />
-        </article>
-      );
-
-      const rIdx2 = list.length;
-      const celebrationCopy = themeCopy.celebration;
-      list.push(
-        <article className={`world world-${rIdx2}`} aria-label="Celebration" key="r-w2" {...inactiveProps(rIdx2)}>
-          <DecoWord word={celebrationCopy.deco} opacity={0.04} index={rIdx2} />
-          <ThemeScene label={celebrationCopy.scene} index={rIdx2} />
-          <motion.div className="world-content interactive" variants={staggerContainer} initial="hidden" animate={active === rIdx2 ? "show" : "hidden"}>
-            <motion.div className="world-label" variants={fadeUp} custom={0}>{celebrationCopy.label}</motion.div>
-            <motion.div variants={scaleIn} style={{ marginBottom: 20 }} aria-hidden="true"><Heart className="w-12 h-12" style={{ color: "var(--red)", fill: "var(--red)" }} /></motion.div>
-            <motion.h2 className="world-title" variants={fadeUp} custom={2}>{renderThemeHeadline(celebrationCopy, themeTextValues)}</motion.h2>
-            <motion.p className="world-body" variants={fadeUp} custom={3}>
-              {planMode === "sender_plans" ? celebrationCopy.body : "Since they asked, you get to choose the details!"}
-            </motion.p>
-            <motion.div variants={fadeUp} custom={4} style={{ marginTop: 32 }}>
-              <button className="btn-primary" onClick={() => goTo(rIdx2 + 1)}>
-                {planMode === "sender_plans" ? celebrationCopy.cta : "Make it official"}
-                <ArrowRight className="w-4 h-4" aria-hidden="true" />
-              </button>
-            </motion.div>
-          </motion.div>
-          <div className="world-wall" aria-hidden="true" />
-        </article>
-      );
-
-      if (planMode === "sender_plans") {
-        pushSummary();
-      } else {
-        pushDate();
-        pushTime();
-        pushFood();
-        pushVibe();
-        pushSummary();
-      }
-    }
-
-    return list;
-  }, [
-    appMode, planMode, senderName, receiverName, date, time, food, vibe,
-    active, noCount, dateLabel, parsedDate, handleWheelDateChange,
-    showBurst, handleYes, shared, goTo, noPrompt, quickDates, acceptedReply,
-    copyInviteLink, shareInviteLink, saveCalendarInvite, sharePlanSummary,
-    themeCopy, themeTextValues
-  ]);
-
-  useEffect(() => {
-    worldCountRef.current = worlds.length;
-    setMaxWorld((current) => clamp(current, 1, Math.max(1, worlds.length - 1)));
-  }, [worlds.length]);
-
-  /* ── Scroll driver ── */
-  useEffect(() => {
-    const onScroll = () => {
-      const y = window.scrollY;
-      setScrollY(y);
-      setNavScrolled(y > 20);
-      const w = clamp(Math.floor(y / SCROLL_PER_WORLD), 0, worlds.length - 1);
-      setActive(w);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [worlds.length]);
-
-  /* ── Translate stage ── */
-  useEffect(() => {
-    if (!stageRef.current) return;
-    const pct = -(scrollY / SCROLL_PER_WORLD) * 100;
-    stageRef.current.style.transform = `translateX(${pct}vw)`;
-  }, [scrollY]);
-
-  /* ── Focus name on world 1 ── */
-  useEffect(() => {
-    if (appMode === "creator" && active === 1) setTimeout(() => nameRef.current?.focus(), 500);
-  }, [active, appMode]);
-
-  /* ── Overall scroll % for top bar ── */
-  const totalH = maxWorld * SCROLL_PER_WORLD;
-  const barPct = mounted
-    ? clamp(scrollY / totalH, 0, 1) * 100
-    : 0;
-
-  return (
-    <>
-      {/* Skip link (a11y) */}
-      <a href="#main-content" className="skip-link">
-        Skip to content
-      </a>
-
-      {/* Custom cursor — desktop only */}
-      <Cursor />
-
-      {/* ── TOP NAV ── */}
-      <div
-        className={`top-nav ${navScrolled ? "scrolled" : ""}`}
-        role="banner"
-      >
-        {/* Brand */}
-        <div className="brand" aria-label="DateDrop">
-          <div className="brand-dot" aria-hidden="true" />
-          <span className="brand-wordmark">DateDrop</span>
+            );
+          })()}
         </div>
-
-        <div className="top-nav-actions">
-          <div className="theme-switcher" ref={themeSwitcherRef}>
-            <button
-              type="button"
-              className="theme-trigger"
-              aria-haspopup="dialog"
-              aria-expanded={themeMenuOpen}
-              aria-controls="theme-menu"
-              onClick={() => setThemeMenuOpen((open) => !open)}
+        <AnimatePresence>
+          {showCustomTime && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-3 p-4 border-[3px] border-black rounded-2xl bg-white shadow-brutal w-full max-w-xs md:max-w-sm overflow-hidden"
             >
-              <Palette className="w-4 h-4" aria-hidden="true" />
-              <span className="theme-trigger-label">{activeTheme.label}</span>
-              <ChevronDown className={`w-4 h-4 theme-trigger-chevron ${themeMenuOpen ? "open" : ""}`} aria-hidden="true" />
-            </button>
+              <h4 className="font-black text-sm uppercase mb-4 text-center">
+                Set Time
+              </h4>
+              <BrutalTimePicker
+                value={`${customHour}:${customMin} ${customAmpm}`}
+                onChange={(val) => {
+                  const [hm, period] = val.split(" ");
+                  const [h, m] = hm.split(":");
+                  setCustomHour(h);
+                  setCustomMin(m);
+                  setCustomAmpm(period);
+                }}
+              />
+              <button
+                onClick={() => {
+                  setTime(`${customHour}:${customMin} ${customAmpm}`);
+                  setShowCustomTime(false);
+                }}
+                className="mt-5 w-full py-3 bg-black text-white font-black text-sm rounded-xl border-[3px] border-black hover:-translate-y-0.5 transition-transform shadow-brutal cursor-pointer"
+              >
+                Set Time
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </>
+  );
 
-            <AnimatePresence>
-              {themeMenuOpen && (
-                <motion.div
-                  id="theme-menu"
-                  className="theme-menu"
-                  role="radiogroup"
-                  aria-label="Choose DateDrop theme"
-                  initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                  transition={{ duration: 0.18, ease: [0.0, 0.0, 0.2, 1] }}
-                >
-                  {THEME_OPTIONS.map((option) => {
-                    const selected = option.id === theme;
+  if (!mounted) return null;
 
-                    return (
-                      <button
-                        key={option.id}
-                        type="button"
-                        className={`theme-option ${selected ? "selected" : ""}`}
-                        role="radio"
-                        aria-checked={selected}
-                        onClick={() => handleThemeChange(option.id)}
-                      >
-                        <span
-                          className="theme-swatch"
-                          style={{
-                            "--theme-swatch": option.swatch,
-                            "--theme-surface": option.surface,
-                          } as CSSProperties}
-                          aria-hidden="true"
-                        />
-                        <span className="theme-option-copy">
-                          <span className="theme-option-name">{option.label}</span>
-                          <span className="theme-option-note">{option.note}</span>
-                        </span>
-                        {selected && <Check className="w-4 h-4 theme-option-check" aria-hidden="true" />}
-                      </button>
-                    );
-                  })}
-                </motion.div>
-              )}
-            </AnimatePresence>
+  // RECEIVER FLOW — full cinematic experience
+  if (appMode === "receiver" && loadedFromHash) {
+    return (
+      <ReceiverRevealFlow
+        senderName={senderName}
+        receiverName={receiverName}
+        date={date}
+        time={time}
+        food={food}
+        vibe={vibe}
+        planId={planId}
+        accepted={accepted}
+        summaryCardRef={summaryCardRef}
+        screenshotBusy={screenshotBusy}
+        downloadScreenshot={downloadScreenshot}
+      />
+    );
+  }
+
+  // CREATOR SAW YES — celebration banner
+  if (appMode === "creator" && creatorSawYes) {
+    return (
+      <div className="min-h-screen bg-[#FFFBF5] flex flex-col items-center justify-center p-6 text-center gap-6">
+        <Confetti />
+        <motion.div
+          initial={{ scale: 0.7, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 15 }}
+        >
+          <div className="w-20 h-20 bg-[#dcfce7] border-[3px] border-black rounded-full flex items-center justify-center shadow-brutal mx-auto mb-6">
+            <PartyPopper className="w-10 h-10" strokeWidth={2} />
           </div>
-
-          {/* Step counter */}
-          <p className="step-counter" aria-live="polite" aria-atomic="true">
-            <strong>{active + 1}</strong> / {worlds.length}
+          <h1
+            className="text-5xl font-black tracking-tighter mb-2"
+            style={{ fontFamily: "var(--font-fredoka, var(--font-inter))" }}
+          >
+            They said YES! 🎉
+          </h1>
+          <p className="text-lg font-bold text-gray-500 mb-2">
+            {receiverName} accepted your invite.
           </p>
+          <p className="text-sm text-gray-400">
+            It&apos;s a date —{" "}
+            {date
+              ? new Date(date + "T12:00:00").toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                })
+              : "soon"}
+            .
+          </p>
+        </motion.div>
+        <div className="flex flex-col gap-3 w-full max-w-xs">
+          {date &&
+            time &&
+            getCalendarUrl(date, time, food, vibe, senderName) && (
+              <a
+                href={getCalendarUrl(date, time, food, vibe, senderName)!}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3.5 bg-black text-white font-black text-sm uppercase rounded-2xl border-[3px] border-black shadow-brutal hover:-translate-y-0.5 transition-transform flex items-center justify-center gap-2"
+              >
+                <CalendarIcon className="w-4 h-4" /> Add to Calendar
+              </a>
+            )}
+          <button
+            onClick={downloadScreenshot}
+            disabled={screenshotBusy}
+            className="w-full py-3.5 bg-white font-black text-sm uppercase rounded-2xl border-[3px] border-black shadow-brutal hover:-translate-y-0.5 transition-transform flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+          >
+            Save Invite Card <Download className="w-4 h-4" />
+          </button>
+        </div>
+        {/* Hidden summary card for screenshot */}
+        <div
+          className="fixed -left-[9999px] top-0 pointer-events-none"
+          aria-hidden
+        >
+          <div
+            ref={summaryCardRef}
+            className="rounded-3xl overflow-hidden"
+            style={{
+              width: 390,
+              background:
+                "linear-gradient(165deg, #fff1f2 0%, #ffe4e6 40%, #fecdd3 100%)",
+            }}
+          >
+            <div className="px-6 pt-6 pb-4">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+                  <Heart
+                    className="w-4 h-4 text-white"
+                    fill="currentColor"
+                    strokeWidth={0}
+                  />
+                </div>
+                <span className="font-black text-base uppercase tracking-tight">
+                  DateDrop
+                </span>
+              </div>
+              <div className="text-center mb-6">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-black/40 mb-2">
+                  A date between
+                </p>
+                <p className="text-3xl font-black uppercase tracking-tight">
+                  {senderName}
+                </p>
+                <div className="flex items-center justify-center gap-3 my-2">
+                  <div className="h-[3px] w-8 bg-black/20 rounded-full" />
+                  <Heart
+                    className="w-5 h-5 text-rose-400"
+                    fill="currentColor"
+                    strokeWidth={0}
+                  />
+                  <div className="h-[3px] w-8 bg-black/20 rounded-full" />
+                </div>
+                <p className="text-3xl font-black uppercase tracking-tight">
+                  {receiverName}
+                </p>
+              </div>
+            </div>
+            <div className="mx-4 mb-4 bg-white rounded-2xl border-[3px] border-black p-5 space-y-4">
+              {date && (
+                <div className="flex items-start gap-4">
+                  <div className="w-11 h-11 bg-[#dcfce7] border-2 border-black rounded-xl flex items-center justify-center">
+                    <CalendarIcon className="w-5 h-5" strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-black/40">
+                      When
+                    </p>
+                    <p className="text-lg font-black">
+                      {new Date(date + "T12:00:00").toLocaleDateString(
+                        "en-US",
+                        { weekday: "long", month: "long", day: "numeric" },
+                      )}
+                    </p>
+                    {time && (
+                      <p className="text-sm font-bold text-black/60">{time}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+              {food && (
+                <div className="flex items-start gap-4">
+                  <div className="w-11 h-11 bg-[#fef9c3] border-2 border-black rounded-xl flex items-center justify-center">
+                    <Utensils className="w-5 h-5" strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-black/40">
+                      Eating
+                    </p>
+                    <p className="text-lg font-black">{food}</p>
+                  </div>
+                </div>
+              )}
+              {vibe && (
+                <div className="flex items-start gap-4">
+                  <div className="w-11 h-11 bg-[#e0f2fe] border-2 border-black rounded-xl flex items-center justify-center">
+                    <Star className="w-5 h-5" strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-black/40">
+                      Activity
+                    </p>
+                    <p className="text-lg font-black">{vibe}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="px-6 pb-6 text-center">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-black/30">
+                Made with DateDrop ❤️
+              </p>
+            </div>
+          </div>
         </div>
       </div>
+    );
+  }
 
-      {/* ── PROGRESS BAR ── */}
+  // CREATOR FLOW
+  return (
+    <div
+      className="min-h-screen font-sans text-black flex flex-col relative bg-[#FFFBF5]"
+      style={{ zIndex: 1 }}
+    >
+      {/* Subtle background grid */}
       <div
-        className="progress-bar"
-        role="progressbar"
-        aria-valuenow={Math.round(barPct)}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label="Invitation progress"
-      >
-        <motion.div
-          className="progress-fill"
-          animate={{ width: `${barPct}%` }}
-          transition={{ duration: 0.1, ease: "linear" }}
-        />
-      </div>
-
-      <div className={`status-toast ${statusMessage ? "visible" : ""}`} role="status" aria-live="polite">
-        {statusMessage}
-      </div>
-
-      {/* ── SCROLL TRACK (tall invisible — drives stage) ── */}
-      <div
-        style={{ height: maxWorld * SCROLL_PER_WORLD + (mounted ? window.innerHeight : 900) }}
-        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none opacity-[0.025] bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"
+        style={{ zIndex: 0 }}
       />
 
-      {/* ── WORLDS VIEWPORT ── */}
-      <main
-        className="worlds-viewport"
-        id="main-content"
-        style={{ height: `calc(${maxWorld * SCROLL_PER_WORLD}px + 100vh)` }}
-      >
-        <div
-          ref={stageRef}
-          className="worlds-stage"
-          style={{ transition: "transform 60ms linear" }}
+      {/* Header */}
+      <div className="pt-4 px-5 pb-2.5 md:px-12 md:pt-6 bg-[#FFFBF5]/90 backdrop-blur-sm z-30 flex items-center justify-between w-full mx-auto max-w-5xl sticky top-0">
+        <button
+          onClick={handleBack}
+          className={`w-9 h-9 flex items-center justify-center border-[3px] border-black rounded-full shadow-brutal bg-white hover:-translate-y-1 transition-transform cursor-pointer ${currentStep === 0 ? "opacity-0 pointer-events-none" : ""}`}
         >
-          {worlds}
+          <ChevronLeft strokeWidth={4} className="w-4 h-4" />
+        </button>
+
+        <div className="flex items-center gap-3">
+          {/* Step dots */}
+          {appMode === "creator" && (
+            <div className="flex items-center gap-1.5">
+              {Array.from({ length: totalSteps + 1 }).map((_, i) => (
+                <motion.div
+                  key={i}
+                  animate={{
+                    width: i === currentStep ? 20 : 8,
+                    opacity: i <= currentStep ? 1 : 0.3,
+                  }}
+                  transition={{ duration: 0.3 }}
+                  className={`h-2 rounded-full bg-black`}
+                />
+              ))}
+            </div>
+          )}
+          {!appMode && (
+            <div className="flex items-center gap-2">
+              <Heart
+                className="w-4 h-4 text-rose-500"
+                fill="currentColor"
+                strokeWidth={0}
+              />
+              <span className="font-black text-sm uppercase tracking-tight">
+                DateDrop
+              </span>
+            </div>
+          )}
         </div>
-      </main>
-    </>
+      </div>
+
+      {/* Sticky date/time banner */}
+      <AnimatePresence>
+        {(date || time) && currentStep > 1 && appMode === "creator" && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="sticky top-[56px] z-20 w-full mx-auto max-w-5xl px-5 md:px-12 mb-3 mt-1"
+          >
+            <div className="w-full bg-black text-white border-[3px] border-black shadow-brutal px-3 py-2 md:px-5 md:py-3 rounded-xl flex items-center justify-between gap-2 rotate-1">
+              <div>
+                <span className="text-[10px] uppercase font-black text-green-300 tracking-widest">
+                  Date locked in
+                </span>
+                <p className="text-sm font-black leading-tight">
+                  {date
+                    ? new Date(date + "T12:00:00").toLocaleDateString("en-US", {
+                        weekday: "long",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "TBD"}
+                </p>
+              </div>
+              {time && (
+                <div className="bg-green-300 text-black px-3 py-1 rounded-lg border-2 border-black font-black text-xs -rotate-1">
+                  {time}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Main content */}
+      <div className="flex-1 px-5 pb-32 md:px-12 w-full mx-auto max-w-5xl flex flex-col relative z-10 pt-4 md:pt-6">
+        <AnimatePresence mode="wait">
+          {/* STEP 0 — Mode Selection / Names */}
+          {currentStep === 0 && (
+            <motion.div
+              key="step0"
+              initial={{ opacity: 0, x: 32 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -32 }}
+              transition={{ duration: 0.3 }}
+              className="flex-1"
+            >
+              {/* Landing — mode not yet chosen */}
+              {!appMode && (
+                <div className="flex flex-col items-center text-center py-6 md:py-10">
+                  <div className="w-full max-w-sm md:max-w-md mb-6">
+                    <img
+                      src="/images/hero.png"
+                      alt="Date illustration"
+                      className="w-full h-auto mix-blend-multiply opacity-95"
+                    />
+                  </div>
+                  <h2
+                    className="text-4xl md:text-6xl font-black uppercase tracking-tighter leading-none mb-3"
+                    style={{
+                      fontFamily: "var(--font-fredoka, var(--font-inter))",
+                    }}
+                  >
+                    Make them say yes.
+                  </h2>
+                  <p className="text-base font-medium text-gray-500 max-w-md mb-8 leading-relaxed">
+                    Build a date invite they won&apos;t forget. Send a link.
+                    Watch them smile.
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row gap-4 w-full max-w-lg mb-10">
+                    <motion.button
+                      whileHover={{ y: -4 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => setAppMode("creator")}
+                      className="flex-1 group p-6 bg-white border-[3px] border-black rounded-2xl shadow-brutal text-left cursor-pointer"
+                    >
+                      <div className="w-12 h-12 bg-[#dcfce7] border-2 border-black rounded-xl flex items-center justify-center mb-4">
+                        <Sparkles className="w-6 h-6" strokeWidth={2.5} />
+                      </div>
+                      <h3 className="text-xl font-black uppercase mb-1">
+                        I&apos;ll Plan It
+                      </h3>
+                      <p className="text-sm font-medium text-gray-500 leading-snug">
+                        Create a date plan and send the link to your partner
+                      </p>
+                    </motion.button>
+
+                    <motion.button
+                      whileHover={{ y: -4 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => setAppMode("receiver")}
+                      className="flex-1 group p-6 bg-white border-[3px] border-black rounded-2xl shadow-brutal text-left cursor-pointer"
+                    >
+                      <div className="w-12 h-12 bg-[#e0f2fe] border-2 border-black rounded-xl flex items-center justify-center mb-4">
+                        <Send className="w-6 h-6" strokeWidth={2.5} />
+                      </div>
+                      <h3 className="text-xl font-black uppercase mb-1">
+                        Let Them Plan
+                      </h3>
+                      <p className="text-sm font-medium text-gray-500 leading-snug">
+                        Send your partner a link so they can plan the date
+                      </p>
+                    </motion.button>
+                  </div>
+
+                  {/* Games banner */}
+                  <a href="/games" className="w-full max-w-2xl block group">
+                    <motion.div
+                      whileHover={{ y: -4 }}
+                      className="relative border-[3px] border-black rounded-2xl shadow-brutal overflow-hidden bg-gradient-to-br from-[#f3e8ff] via-[#fce7f3] to-[#e0f2fe]"
+                    >
+                      <div className="absolute top-0 right-0 bg-black text-white font-black text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-bl-xl">
+                        New
+                      </div>
+                      <div className="p-6 md:p-8">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-10 h-10 bg-white border-[3px] border-black rounded-xl flex items-center justify-center shadow-brutal-sm">
+                            <Sparkles className="w-5 h-5" strokeWidth={2} />
+                          </div>
+                          <span className="font-black text-xs uppercase tracking-[0.2em] text-black/40">
+                            DateDrop Games
+                          </span>
+                        </div>
+                        <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight leading-none mb-2">
+                          Play Together
+                        </h3>
+                        <p className="text-sm font-medium text-black/50 mb-5 max-w-md">
+                          5 multiplayer games for two — Codenames, Draw & Guess,
+                          Know Me, Hangman, and Who Is It?
+                        </p>
+                        <div className="grid grid-cols-2 gap-3">
+                          {[
+                            {
+                              href: "/games/codenames",
+                              icon: Target,
+                              label: "Codenames",
+                              sub: "Word clues",
+                            },
+                            {
+                              href: "/games/draw-guess",
+                              icon: Camera,
+                              label: "Draw & Guess",
+                              sub: "Draw & guess",
+                            },
+                            {
+                              href: "/games/know-me",
+                              icon: Heart,
+                              label: "Know Me?",
+                              sub: "Couples quiz",
+                            },
+                            {
+                              href: "/games/hangman",
+                              icon: Star,
+                              label: "Hangman",
+                              sub: "Guess the word",
+                            },
+                          ].map((g) => {
+                            const Icon = g.icon;
+                            return (
+                              <a
+                                key={g.href}
+                                href={g.href}
+                                className="bg-white border-[3px] border-black rounded-xl p-3 shadow-brutal-sm hover:-translate-y-0.5 transition-transform block"
+                              >
+                                <Icon
+                                  className="w-5 h-5 mb-1"
+                                  strokeWidth={2}
+                                />
+                                <p className="font-black text-xs uppercase tracking-tight">
+                                  {g.label}
+                                </p>
+                                <p className="text-[10px] text-black/40 font-medium">
+                                  {g.sub}
+                                </p>
+                              </a>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </motion.div>
+                  </a>
+                </div>
+              )}
+
+              {/* CREATOR names step */}
+              {appMode === "creator" && (
+                <div>
+                  <StepHeading
+                    number={1}
+                    title={
+                      receiverName
+                        ? `Planning for ${receiverName}`
+                        : "The People"
+                    }
+                    subtitle="Who is this date for?"
+                  />
+                  <div className="flex flex-col lg:flex-row gap-8 items-start">
+                    <div className="flex-1 flex flex-col gap-5 max-w-2xl">
+                      <div>
+                        <label className="block text-sm font-black mb-2 ml-1 uppercase tracking-tight text-gray-600">
+                          Your Name
+                        </label>
+                        <input
+                          type="text"
+                          className="input-brutal text-lg py-4 px-4"
+                          placeholder="e.g. James"
+                          value={senderName}
+                          onChange={(e) => setSenderName(e.target.value)}
+                        />
+                      </div>
+                      <GenderPicker
+                        label="Your Gender"
+                        value={senderGender}
+                        onChange={setSenderGender}
+                      />
+                      <div>
+                        <label className="block text-sm font-black mb-2 ml-1 uppercase tracking-tight text-gray-600">
+                          Their Name
+                        </label>
+                        <input
+                          type="text"
+                          className="input-brutal text-lg py-4 px-4"
+                          placeholder="e.g. Sarah"
+                          value={receiverName}
+                          onChange={(e) => setReceiverName(e.target.value)}
+                        />
+                        {receiverName && (
+                          <p className="text-xs font-bold text-rose-400 mt-2 ml-1">
+                            ✓ Building a date for {receiverName}
+                          </p>
+                        )}
+                      </div>
+                      <GenderPicker
+                        label="Their Gender"
+                        value={receiverGender}
+                        onChange={setReceiverGender}
+                      />
+                    </div>
+                    <div className="hidden md:block w-48 lg:w-72 flex-shrink-0">
+                      <img
+                        src="/images/the_people.png"
+                        alt="People illustration"
+                        className="w-full h-auto mix-blend-multiply opacity-95"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* RECEIVER — send link to partner */}
+              {appMode === "receiver" && !loadedFromHash && (
+                <div className="flex flex-col items-center text-center py-8 md:py-16 max-w-lg mx-auto">
+                  <div className="w-16 h-16 bg-[#e0f2fe] border-[3px] border-black rounded-2xl -rotate-3 flex items-center justify-center shadow-brutal mb-6">
+                    <Send className="w-8 h-8" strokeWidth={2.5} />
+                  </div>
+                  <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter leading-none mb-3">
+                    Let them plan
+                  </h2>
+                  <p className="text-base font-medium text-gray-500 max-w-md mb-8 leading-relaxed">
+                    Enter your names, generate a link, and send it to your
+                    partner so they can plan the date.
+                  </p>
+                  <div className="w-full flex flex-col gap-5 text-left">
+                    <div>
+                      <label className="block text-sm font-black mb-2 ml-1 uppercase tracking-tight text-gray-600">
+                        Your Name
+                      </label>
+                      <input
+                        type="text"
+                        className="input-brutal text-lg py-4 px-4"
+                        placeholder="e.g. Sarah"
+                        value={receiverName}
+                        onChange={(e) => setReceiverName(e.target.value)}
+                      />
+                    </div>
+                    <GenderPicker
+                      label="Your Gender"
+                      value={receiverGender}
+                      onChange={setReceiverGender}
+                    />
+                    <div>
+                      <label className="block text-sm font-black mb-2 ml-1 uppercase tracking-tight text-gray-600">
+                        Partner&apos;s Name
+                      </label>
+                      <input
+                        type="text"
+                        className="input-brutal text-lg py-4 px-4"
+                        placeholder="e.g. James"
+                        value={senderName}
+                        onChange={(e) => setSenderName(e.target.value)}
+                      />
+                    </div>
+                    <GenderPicker
+                      label="Partner's Gender"
+                      value={senderGender}
+                      onChange={setSenderGender}
+                    />
+                    <motion.button
+                      whileHover={{ y: -2 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={async () => {
+                        if (receiverName.trim() && senderName.trim()) {
+                          try {
+                            const res = await fetch("/api/plans", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                senderName: senderName.trim(),
+                                receiverName: receiverName.trim(),
+                                senderGender,
+                                receiverGender,
+                                date: "",
+                                time: "",
+                                food: "",
+                                vibe: "",
+                                accepted: false,
+                              }),
+                            });
+                            const data = await res.json();
+                            if (data.id) {
+                              const url = `${window.location.origin}${window.location.pathname}#${data.id}`;
+                              if (navigator.share) {
+                                try {
+                                  await navigator.share({
+                                    title: `DateDrop — Plan a date!`,
+                                    text: `Hey ${senderName}! Plan our date using this link 💌`,
+                                    url,
+                                  });
+                                } catch {
+                                  await copyToClipboard(url);
+                                }
+                              } else {
+                                await copyToClipboard(url);
+                              }
+                              setLinkCopied(true);
+                              setTimeout(() => setLinkCopied(false), 2000);
+                            }
+                          } catch {
+                            const payload: InvitePayload = {
+                              s: senderName.trim(),
+                              r: receiverName.trim(),
+                              rg: receiverGender || undefined,
+                              sg: senderGender || undefined,
+                            };
+                            const url = `${window.location.origin}${window.location.pathname}#${encodeInvitePayload(payload)}`;
+                            await copyToClipboard(url);
+                            setLinkCopied(true);
+                            setTimeout(() => setLinkCopied(false), 2000);
+                          }
+                        }
+                      }}
+                      disabled={!receiverName.trim() || !senderName.trim()}
+                      className="mt-2 w-full py-4 bg-black text-white rounded-2xl border-[3px] border-black shadow-brutal font-black text-sm uppercase flex items-center justify-center gap-2 disabled:bg-gray-200 disabled:text-gray-400 disabled:border-gray-300 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      {linkCopied ? (
+                        <>
+                          <Check className="w-4 h-4" strokeWidth={3} /> Link
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Share2 className="w-4 h-4" strokeWidth={2.5} />{" "}
+                          Generate & Share Link
+                        </>
+                      )}
+                    </motion.button>
+                    {linkCopied && (
+                      <p className="text-sm font-bold text-green-600 text-center">
+                        Link ready — send it to {senderName}!
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* STEP 1 — Date & Time */}
+          {currentStep === 1 && (
+            <motion.div
+              key="step1"
+              initial={{ opacity: 0, x: 32 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -32 }}
+              transition={{ duration: 0.3 }}
+              className="flex-1"
+            >
+              <div className="flex flex-col lg:flex-row gap-6 items-start">
+                <div className="flex-1">
+                  <StepHeading
+                    number={2}
+                    title="Date & Time"
+                    subtitle={`When are you taking ${receiverName || "them"} out?`}
+                  />
+                </div>
+                <div className="hidden md:block w-40 lg:w-64 flex-shrink-0 -mt-2">
+                  <img
+                    src="/images/date_time.png"
+                    alt="Date and time illustration"
+                    className="w-full h-auto mix-blend-multiply opacity-90"
+                  />
+                </div>
+              </div>
+              {renderDateTimePickers()}
+            </motion.div>
+          )}
+
+          {/* STEP 2 — Food */}
+          {currentStep === 2 && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, x: 32 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -32 }}
+              transition={{ duration: 0.3 }}
+              className="flex-1"
+            >
+              <div className="flex flex-col lg:flex-row gap-6 items-start">
+                <div className="flex-1">
+                  <StepHeading
+                    number={3}
+                    title="The Food"
+                    subtitle={`What would ${receiverName || "they"} love to eat?`}
+                  />
+                </div>
+                <div className="hidden md:block w-40 lg:w-64 flex-shrink-0 -mt-2">
+                  <img
+                    src="/images/the_food.png"
+                    alt="Food illustration"
+                    className="w-full h-auto mix-blend-multiply opacity-90"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                {FOODS.map((f) => (
+                  <BentoCard
+                    key={f.id}
+                    label={f.label}
+                    icon={f.icon}
+                    bg={f.bg}
+                    desc={f.desc}
+                    selected={food === f.label}
+                    onClick={() => {
+                      setFood(f.label);
+                      setCustomFood("");
+                    }}
+                  />
+                ))}
+                <CustomBentoCard
+                  value={customFood}
+                  onChange={setCustomFood}
+                  onSelect={(v) => {
+                    setFood(v);
+                    setCustomFood(v);
+                  }}
+                  selected={!!food && !FOODS.some((f) => f.label === food)}
+                  placeholder="e.g. Thai food"
+                  bg="bg-[#fef9c3]"
+                />
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 3 — Vibe */}
+          {currentStep === 3 && (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, x: 32 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -32 }}
+              transition={{ duration: 0.3 }}
+              className="flex-1"
+            >
+              <div className="flex flex-col lg:flex-row gap-6 items-start">
+                <div className="flex-1">
+                  <StepHeading
+                    number={4}
+                    title="The Vibe"
+                    subtitle={`What do you want ${receiverName || "them"} to experience?`}
+                  />
+                </div>
+                <div className="hidden md:block w-40 lg:w-64 flex-shrink-0 -mt-2">
+                  <img
+                    src="/images/activities.png"
+                    alt="Activities illustration"
+                    className="w-full h-auto mix-blend-multiply opacity-90"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                {VIBES.map((v) => (
+                  <BentoCard
+                    key={v.id}
+                    label={v.label}
+                    icon={v.icon}
+                    bg={v.bg}
+                    desc={v.desc}
+                    selected={vibe === v.label}
+                    onClick={() => {
+                      setVibe(v.label);
+                      setCustomVibe("");
+                    }}
+                  />
+                ))}
+                <CustomBentoCard
+                  value={customVibe}
+                  onChange={setCustomVibe}
+                  onSelect={(v) => {
+                    setVibe(v);
+                    setCustomVibe(v);
+                  }}
+                  selected={!!vibe && !VIBES.some((v) => v.label === vibe)}
+                  placeholder="e.g. Rooftop drinks"
+                  bg="bg-[#f3e8ff]"
+                />
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 4 — Final */}
+          {currentStep === 4 && (
+            <motion.div
+              key="step4"
+              initial={{ opacity: 0, x: 32 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -32 }}
+              transition={{ duration: 0.3 }}
+              className="flex-1 pb-12 pt-4"
+            >
+              <div className="flex flex-col lg:flex-row gap-8 items-start w-full">
+                <div className="flex-1">
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-4 mb-6"
+                  >
+                    <div className="w-16 h-16 bg-[#fef9c3] border-[3px] border-black rounded-2xl rotate-6 flex items-center justify-center shadow-brutal">
+                      <PartyPopper className="w-8 h-8" strokeWidth={2} />
+                    </div>
+                    <div>
+                      <h2
+                        className="text-3xl md:text-5xl font-black uppercase tracking-tighter leading-none mb-1"
+                        style={{
+                          fontFamily: "var(--font-fredoka, var(--font-inter))",
+                        }}
+                      >
+                        All Set!
+                      </h2>
+                      <p className="text-sm font-medium text-gray-500">
+                        {receiverName} is going to love this.
+                      </p>
+                    </div>
+                  </motion.div>
+
+                  {/* Summary card */}
+                  <div className="w-full max-w-lg mb-6">
+                    <div
+                      ref={summaryCardRef}
+                      className="rounded-3xl overflow-hidden border-[3px] border-black shadow-brutal"
+                      style={{
+                        background:
+                          "linear-gradient(165deg, #fff1f2 0%, #ffe4e6 40%, #fecdd3 100%)",
+                      }}
+                    >
+                      <div className="px-6 pt-6 pb-4">
+                        <div className="flex items-center justify-between mb-6">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+                              <Heart
+                                className="w-4 h-4 text-white"
+                                fill="currentColor"
+                                strokeWidth={0}
+                              />
+                            </div>
+                            <span className="font-black text-base uppercase tracking-tight">
+                              DateDrop
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-black/40">
+                            Date Plan
+                          </span>
+                        </div>
+                        <div className="text-center mb-6">
+                          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-black/40 mb-2">
+                            A date between
+                          </p>
+                          <p className="text-3xl font-black uppercase tracking-tight leading-none">
+                            {senderName}
+                          </p>
+                          <div className="flex items-center justify-center gap-3 my-2">
+                            <div className="h-[3px] w-8 bg-black/20 rounded-full" />
+                            <Heart
+                              className="w-5 h-5 text-rose-400"
+                              fill="currentColor"
+                              strokeWidth={0}
+                            />
+                            <div className="h-[3px] w-8 bg-black/20 rounded-full" />
+                          </div>
+                          <p className="text-3xl font-black uppercase tracking-tight leading-none">
+                            {receiverName}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mx-4 mb-4 bg-white rounded-2xl border-[3px] border-black p-5 space-y-4">
+                        {date && (
+                          <div className="flex items-start gap-4">
+                            <div className="w-11 h-11 bg-[#dcfce7] border-2 border-black rounded-xl flex items-center justify-center flex-shrink-0">
+                              <CalendarIcon
+                                className="w-5 h-5"
+                                strokeWidth={2.5}
+                              />
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-black/40 mb-0.5">
+                                When
+                              </p>
+                              <p className="text-lg font-black leading-tight">
+                                {new Date(
+                                  date + "T12:00:00",
+                                ).toLocaleDateString("en-US", {
+                                  weekday: "long",
+                                  month: "long",
+                                  day: "numeric",
+                                })}
+                              </p>
+                              {time && (
+                                <p className="text-sm font-bold text-black/60 mt-0.5">
+                                  {time}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {food && (
+                          <>
+                            <div className="h-[2px] bg-black/5 rounded-full" />
+                            <div className="flex items-start gap-4">
+                              <div className="w-11 h-11 bg-[#fef9c3] border-2 border-black rounded-xl flex items-center justify-center flex-shrink-0">
+                                <Utensils
+                                  className="w-5 h-5"
+                                  strokeWidth={2.5}
+                                />
+                              </div>
+                              <div>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-black/40 mb-0.5">
+                                  Eating
+                                </p>
+                                <p className="text-lg font-black leading-tight">
+                                  {food}
+                                </p>
+                              </div>
+                            </div>
+                          </>
+                        )}
+                        {vibe && (
+                          <>
+                            <div className="h-[2px] bg-black/5 rounded-full" />
+                            <div className="flex items-start gap-4">
+                              <div className="w-11 h-11 bg-[#e0f2fe] border-2 border-black rounded-xl flex items-center justify-center flex-shrink-0">
+                                <Star className="w-5 h-5" strokeWidth={2.5} />
+                              </div>
+                              <div>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-black/40 mb-0.5">
+                                  Activity
+                                </p>
+                                <p className="text-lg font-black leading-tight">
+                                  {vibe}
+                                </p>
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      <div className="px-6 pb-6 text-center">
+                        <a
+                          href="/games"
+                          className="text-xs font-bold uppercase tracking-[0.15em] text-black/50 hover:text-black underline underline-offset-4"
+                        >
+                          Play Games Together
+                        </a>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-black/30 mt-1">
+                          Made with DateDrop ❤️
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="w-full max-w-lg space-y-3">
+                    <motion.button
+                      whileHover={{ y: -2 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={generateLink}
+                      className="w-full btn-action py-4 text-lg flex items-center justify-center gap-2.5 cursor-pointer"
+                    >
+                      {linkCopied ? (
+                        <>
+                          <Check className="w-5 h-5" strokeWidth={3} /> Link
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Share2 className="w-5 h-5" /> Send to{" "}
+                          {receiverName || "them"}
+                        </>
+                      )}
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ y: -2 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={downloadScreenshot}
+                      disabled={screenshotBusy}
+                      className="w-full py-3.5 bg-white text-black font-black text-sm uppercase rounded-2xl border-[3px] border-black shadow-brutal flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                    >
+                      {screenshotBusy ? "Capturing..." : "Download Card"}{" "}
+                      <Download className="w-4 h-4" />
+                    </motion.button>
+                    {linkCopied && (
+                      <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-sm font-bold text-green-600 text-center"
+                      >
+                        Link ready — now send it to {receiverName}! 💌
+                      </motion.p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="hidden md:block w-48 lg:w-72 flex-shrink-0">
+                  <img
+                    src={
+                      senderGender === "female"
+                        ? "/images/all_set_girl.png"
+                        : "/images/all_set_boy.png"
+                    }
+                    alt="All set illustration"
+                    className="w-full h-auto mix-blend-multiply opacity-95"
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Sticky Next button */}
+      {currentStep < totalSteps && appMode === "creator" && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-t from-[#FFFBF5] via-[#FFFBF5]/95 to-transparent pt-12 z-20 pointer-events-none">
+          <div className="max-w-5xl mx-auto w-full flex justify-end pointer-events-auto">
+            <motion.button
+              whileHover={isStepComplete() ? { y: -2 } : {}}
+              whileTap={isStepComplete() ? { scale: 0.97 } : {}}
+              onClick={handleNext}
+              disabled={!isStepComplete()}
+              className="w-full sm:w-auto min-w-[180px] py-4 px-6 bg-black text-white rounded-2xl border-[3px] border-black shadow-brutal font-black text-sm uppercase flex items-center justify-center gap-2 disabled:bg-gray-200 disabled:text-gray-400 disabled:border-gray-300 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer"
+            >
+              {currentStep === 0 && receiverName
+                ? `Plan for ${receiverName}`
+                : "Next"}
+              <ArrowRight className="w-4 h-4 md:w-5 md:h-5" strokeWidth={4} />
+            </motion.button>
+          </div>
+        </div>
+      )}
+
+      {/* Receiver link generation - footer CTA */}
+      {appMode === "receiver" && !loadedFromHash && currentStep === 0 && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#FFFBF5] to-transparent pt-12 z-20 pointer-events-none">
+          <div className="max-w-5xl mx-auto w-full flex justify-center pointer-events-auto">
+            <button
+              onClick={() => setAppMode(null)}
+              className="flex items-center gap-1.5 text-sm font-bold text-gray-400 hover:text-black transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" /> Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
