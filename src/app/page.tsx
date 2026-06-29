@@ -2461,7 +2461,7 @@ export default function DateDropApp() {
                         onChange={setReceiverGender}
                       />
                     </div>
-                    <div className="hidden md:block w-48 lg:w-72 flex-shrink-0">
+                    <div className="order-first mx-auto -mb-2 w-32 flex-shrink-0 md:order-none md:mx-0 md:mb-0 md:w-48 lg:w-72">
                       <img
                         src="/images/the_people.png"
                         alt="People illustration"
@@ -2633,7 +2633,7 @@ export default function DateDropApp() {
                     subtitle={`Choose a day and hour that feels realistic for both of you.`}
                   />
                 </div>
-                <div className="hidden md:block w-40 lg:w-64 flex-shrink-0 -mt-2">
+                <div className="mx-auto -mt-3 w-28 flex-shrink-0 md:mx-0 md:-mt-2 md:w-40 lg:w-64">
                   <img
                     src="/images/date_time.png"
                     alt="Date and time illustration"
@@ -2663,7 +2663,7 @@ export default function DateDropApp() {
                     subtitle={`Pick the food lane first. You can choose the exact place later.`}
                   />
                 </div>
-                <div className="hidden md:block w-40 lg:w-64 flex-shrink-0 -mt-2">
+                <div className="mx-auto -mt-3 w-28 flex-shrink-0 md:mx-0 md:-mt-2 md:w-40 lg:w-64">
                   <img
                     src="/images/the_food.png"
                     alt="Food illustration"
@@ -2719,7 +2719,7 @@ export default function DateDropApp() {
                     subtitle="Set the emotional direction: relaxed, playful, cozy, or memorable."
                   />
                 </div>
-                <div className="hidden md:block w-40 lg:w-64 flex-shrink-0 -mt-2">
+                <div className="mx-auto -mt-3 w-28 flex-shrink-0 md:mx-0 md:-mt-2 md:w-40 lg:w-64">
                   <img
                     src="/images/activities.png"
                     alt="Activities illustration"
@@ -2765,14 +2765,14 @@ export default function DateDropApp() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -32 }}
               transition={{ duration: 0.3 }}
-              className="flex-1 pb-12 pt-4"
+              className="flex-1 pb-12 pt-2 sm:pt-4"
             >
-              <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start w-full">
-                <div className="min-w-0 flex-1">
+              <div className="flex w-full min-w-0 flex-col items-center gap-6 lg:flex-row lg:items-start lg:gap-8">
+                <div className="w-full min-w-0 flex-1">
                   <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-3 sm:gap-4 mb-6"
+                    className="mx-auto mb-5 flex w-full max-w-[min(100%,26rem)] items-center gap-3 sm:mb-6 sm:max-w-lg sm:gap-4 lg:mx-0"
                   >
                     <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#fef9c3] border-[3px] border-black rounded-2xl rotate-6 flex flex-shrink-0 items-center justify-center shadow-brutal">
                       <PartyPopper
@@ -2795,59 +2795,71 @@ export default function DateDropApp() {
                     </div>
                   </motion.div>
 
+                  <div className="mx-auto mb-4 w-32 sm:hidden">
+                    <img
+                      src={
+                        senderGender === "female"
+                          ? "/images/all_set_girl.png"
+                          : "/images/all_set_boy.png"
+                      }
+                      alt="All set illustration"
+                      className="h-auto w-full mix-blend-multiply opacity-95"
+                    />
+                  </div>
+
                   {/* Summary card */}
-                  <div className="w-full max-w-lg mb-6 min-w-0">
+                  <div className="mx-auto mb-5 w-full max-w-[min(100%,26rem)] min-w-0 sm:mb-6 sm:max-w-lg lg:mx-0">
                     <div
                       ref={summaryCardRef}
-                      className="rounded-3xl overflow-hidden border-[3px] border-black shadow-brutal"
+                      className="w-full overflow-hidden rounded-[1.65rem] border-[3px] border-black shadow-brutal sm:rounded-3xl"
                       style={{
                         background:
                           "linear-gradient(165deg, #fff1f2 0%, #ffe4e6 40%, #fecdd3 100%)",
                       }}
                     >
-                      <div className="px-4 pt-5 pb-4 sm:px-6 sm:pt-6">
-                        <div className="flex items-center justify-between mb-6">
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+                      <div className="px-3.5 pt-4 pb-3.5 sm:px-6 sm:pt-6 sm:pb-4">
+                        <div className="mb-5 flex min-w-0 items-center justify-between gap-2 sm:mb-6">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-black">
                               <Heart
                                 className="w-4 h-4 text-white"
                                 fill="currentColor"
                                 strokeWidth={0}
                               />
                             </div>
-                            <span className="font-black text-sm uppercase tracking-tight sm:text-base">
+                            <span className="truncate text-sm font-black uppercase tracking-tight sm:text-base">
                               DateDrop
                             </span>
                           </div>
-                          <span className="text-[9px] font-bold uppercase tracking-widest text-black/40 sm:text-[10px]">
+                          <span className="flex-shrink-0 text-[8px] font-bold uppercase tracking-widest text-black/40 sm:text-[10px]">
                             Date Plan
                           </span>
                         </div>
-                        <div className="text-center mb-6">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-black/40 mb-2">
+                        <div className="mb-5 text-center sm:mb-6">
+                          <p className="mb-2 text-[9px] font-bold uppercase tracking-[0.2em] text-black/40 sm:text-[10px]">
                             A date between
                           </p>
-                          <p className="break-words text-2xl font-black uppercase tracking-tight leading-none sm:text-3xl">
+                          <p className="break-words text-[1.65rem] font-black uppercase leading-none tracking-tight sm:text-3xl">
                             {senderName}
                           </p>
-                          <div className="flex items-center justify-center gap-3 my-2">
-                            <div className="h-[3px] w-8 bg-black/20 rounded-full" />
+                          <div className="my-2 flex items-center justify-center gap-2.5 sm:gap-3">
+                            <div className="h-[3px] w-7 rounded-full bg-black/20 sm:w-8" />
                             <Heart
-                              className="w-5 h-5 text-rose-400"
+                              className="h-5 w-5 text-rose-400"
                               fill="currentColor"
                               strokeWidth={0}
                             />
-                            <div className="h-[3px] w-8 bg-black/20 rounded-full" />
+                            <div className="h-[3px] w-7 rounded-full bg-black/20 sm:w-8" />
                           </div>
-                          <p className="break-words text-2xl font-black uppercase tracking-tight leading-none sm:text-3xl">
+                          <p className="break-words text-[1.65rem] font-black uppercase leading-none tracking-tight sm:text-3xl">
                             {receiverName}
                           </p>
                         </div>
                       </div>
-                      <div className="mx-3 mb-4 bg-white rounded-2xl border-[3px] border-black p-4 space-y-4 sm:mx-4 sm:p-5">
+                      <div className="mx-2.5 mb-3.5 space-y-3 rounded-2xl border-[3px] border-black bg-white p-3.5 sm:mx-4 sm:mb-4 sm:space-y-4 sm:p-5">
                         {date && (
-                          <div className="flex items-start gap-4">
-                            <div className="w-11 h-11 bg-[#dcfce7] border-2 border-black rounded-xl flex items-center justify-center flex-shrink-0">
+                          <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+                            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-black bg-[#dcfce7] sm:h-11 sm:w-11">
                               <CalendarIcon
                                 className="w-5 h-5"
                                 strokeWidth={2.5}
@@ -2857,7 +2869,7 @@ export default function DateDropApp() {
                               <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-black/40 mb-0.5">
                                 When
                               </p>
-                              <p className="break-words text-base font-black leading-tight sm:text-lg">
+                              <p className="break-words text-[0.95rem] font-black leading-tight sm:text-lg">
                                 {new Date(
                                   date + "T12:00:00",
                                 ).toLocaleDateString("en-US", {
@@ -2867,7 +2879,7 @@ export default function DateDropApp() {
                                 })}
                               </p>
                               {time && (
-                                <p className="text-sm font-bold text-black/60 mt-0.5">
+                                <p className="mt-0.5 text-sm font-bold text-black/60">
                                   {time}
                                 </p>
                               )}
@@ -2877,10 +2889,10 @@ export default function DateDropApp() {
                         {food && (
                           <>
                             <div className="h-[2px] bg-black/5 rounded-full" />
-                            <div className="flex items-start gap-4">
-                              <div className="w-11 h-11 bg-[#fef9c3] border-2 border-black rounded-xl flex items-center justify-center flex-shrink-0">
+                            <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+                              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-black bg-[#fef9c3] sm:h-11 sm:w-11">
                                 <Utensils
-                                  className="w-5 h-5"
+                                  className="h-5 w-5"
                                   strokeWidth={2.5}
                                 />
                               </div>
@@ -2888,7 +2900,7 @@ export default function DateDropApp() {
                                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-black/40 mb-0.5">
                                   Eating
                                 </p>
-                                <p className="break-words text-base font-black leading-tight sm:text-lg">
+                                <p className="break-words text-[0.95rem] font-black leading-tight sm:text-lg">
                                   {food}
                                 </p>
                               </div>
@@ -2898,15 +2910,15 @@ export default function DateDropApp() {
                         {vibe && (
                           <>
                             <div className="h-[2px] bg-black/5 rounded-full" />
-                            <div className="flex items-start gap-4">
-                              <div className="w-11 h-11 bg-[#e0f2fe] border-2 border-black rounded-xl flex items-center justify-center flex-shrink-0">
-                                <Star className="w-5 h-5" strokeWidth={2.5} />
+                            <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+                              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border-2 border-black bg-[#e0f2fe] sm:h-11 sm:w-11">
+                                <Star className="h-5 w-5" strokeWidth={2.5} />
                               </div>
                               <div className="min-w-0">
                                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-black/40 mb-0.5">
                                   Activity
                                 </p>
-                                <p className="break-words text-base font-black leading-tight sm:text-lg">
+                                <p className="break-words text-[0.95rem] font-black leading-tight sm:text-lg">
                                   {vibe}
                                 </p>
                               </div>
@@ -2914,23 +2926,23 @@ export default function DateDropApp() {
                           </>
                         )}
                       </div>
-                      <div className="px-4 pb-5 text-center sm:px-6 sm:pb-6">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-black/30 mt-1">
+                      <div className="px-3.5 pb-4 text-center sm:px-6 sm:pb-6">
+                        <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.18em] text-black/30 sm:text-[10px] sm:tracking-[0.2em]">
                           Ready to send with DateDrop
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="w-full max-w-lg mb-6 bg-white border-[3px] border-black rounded-2xl p-4 shadow-brutal-sm">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-black/35 mb-3">
+                  <div className="mx-auto mb-5 w-full max-w-[min(100%,26rem)] rounded-[1.35rem] border-[3px] border-black bg-white p-3.5 shadow-brutal-sm sm:mb-6 sm:max-w-lg sm:rounded-2xl sm:p-4 lg:mx-0">
+                    <p className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-black/35">
                       Before you send
                     </p>
                     <div className="grid gap-2">
                       {planReviewItems.map((item) => (
                         <div
                           key={item.label}
-                          className="flex items-start gap-3 rounded-xl bg-[#FFFBF5] border-2 border-black/5 px-3 py-2.5"
+                          className="flex min-w-0 items-start gap-2.5 rounded-xl border-2 border-black/5 bg-[#FFFBF5] px-2.5 py-2.5 sm:gap-3 sm:px-3"
                         >
                           <span
                             className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 border-black ${item.ready ? "bg-[#dcfce7]" : "bg-white"}`}
@@ -2939,11 +2951,11 @@ export default function DateDropApp() {
                               <Check className="h-3 w-3" strokeWidth={4} />
                             )}
                           </span>
-                          <span className="min-w-0">
+                          <span className="min-w-0 flex-1">
                             <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-black/35">
                               {item.label}
                             </span>
-                            <span className="block text-sm font-black leading-snug text-black">
+                            <span className="block break-words text-[0.95rem] font-black leading-snug text-black sm:text-sm">
                               {item.value}
                             </span>
                           </span>
@@ -2953,12 +2965,12 @@ export default function DateDropApp() {
                   </div>
 
                   {/* Action buttons */}
-                  <div className="w-full max-w-lg space-y-3">
+                  <div className="mx-auto w-full max-w-[min(100%,26rem)] space-y-3 sm:max-w-lg lg:mx-0">
                     <motion.button
                       whileHover={{ y: -2 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={generateLink}
-                      className="w-full btn-action py-4 text-lg flex items-center justify-center gap-2.5 cursor-pointer"
+                      className="btn-action flex min-h-[58px] w-full items-center justify-center gap-2.5 py-4 text-base cursor-pointer sm:text-lg"
                     >
                       {linkCopied ? (
                         <>
@@ -2977,7 +2989,7 @@ export default function DateDropApp() {
                       whileTap={{ scale: 0.97 }}
                       onClick={downloadScreenshot}
                       disabled={screenshotBusy}
-                      className="w-full py-3.5 bg-white text-black font-black text-sm uppercase rounded-2xl border-[3px] border-black shadow-brutal flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                      className="flex min-h-[54px] w-full items-center justify-center gap-2 rounded-2xl border-[3px] border-black bg-white py-3.5 text-sm font-black uppercase text-black shadow-brutal disabled:opacity-50 cursor-pointer"
                     >
                       {screenshotBusy ? "Capturing..." : "Download Card"}{" "}
                       <Download className="w-4 h-4" />
@@ -3006,7 +3018,7 @@ export default function DateDropApp() {
                   </div>
                 </div>
 
-                <div className="hidden md:block w-48 lg:w-72 flex-shrink-0">
+                <div className="hidden w-48 flex-shrink-0 md:block lg:w-72">
                   <img
                     src={
                       senderGender === "female"
