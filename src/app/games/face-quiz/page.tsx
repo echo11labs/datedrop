@@ -184,12 +184,12 @@ export default function FaceQuizPage() {
 
   return (
     <div
-      className="min-h-screen bg-[#fef9ee] flex flex-col items-center pb-20"
+      className="min-h-dvh bg-[#fef9ee] flex flex-col items-center overflow-x-hidden pb-20"
       style={{ fontFamily: "'Inter', sans-serif" }}
     >
       {/* Top bar */}
-      <div className="w-full sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b-4 border-black px-4 md:px-8 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="w-full sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b-4 border-black px-3 py-3 flex items-center justify-between gap-2 md:px-8">
+        <div className="flex items-center gap-3 min-w-0">
           <Link
             href="/games"
             className="flex items-center gap-1 text-sm text-gray-400 hover:text-black transition-colors font-bold"
@@ -233,13 +233,13 @@ export default function FaceQuizPage() {
         </div>
       </div>
 
-      <div className="w-full max-w-xl px-4 pt-6 flex flex-col items-center gap-6">
+      <div className="w-full max-w-xl px-3 pt-5 flex flex-col items-center gap-5 sm:px-4 sm:pt-6 sm:gap-6">
         {/* ── MENU ───────────────────────────────── */}
         {phase === "menu" && (
           <div className="w-full flex flex-col items-center gap-8 mt-4">
             <div className="text-center">
               <div className="text-6xl mb-3">🕵️</div>
-              <h1 className="font-black text-4xl md:text-5xl uppercase tracking-tight">
+              <h1 className="font-black text-[2rem] md:text-5xl uppercase tracking-tight leading-none">
                 Who Is It?
               </h1>
               <p className="text-gray-500 text-sm mt-2 max-w-xs mx-auto">

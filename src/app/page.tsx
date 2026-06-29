@@ -225,6 +225,28 @@ function getCalendarUrl(
   }
 }
 
+function hasMeaningfulPlan({
+  date,
+  time,
+  food,
+  vibe,
+}: {
+  date?: string;
+  time?: string;
+  food?: string;
+  vibe?: string;
+}) {
+  return Boolean(date || time || food || vibe);
+}
+
+function formatDateLabel(date: string) {
+  return new Date(date + "T12:00:00").toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+}
+
 type InvitePayload = {
   s?: string;
   r?: string;
@@ -434,11 +456,7 @@ function ReceiverRevealFlow({
     date
       ? {
           label: "When",
-          value: new Date(date + "T12:00:00").toLocaleDateString("en-US", {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-          }),
+          value: formatDateLabel(date),
           sub: time,
           icon: CalendarIcon,
           bg: "bg-[#dcfce7]",
@@ -464,7 +482,7 @@ function ReceiverRevealFlow({
   }[];
 
   return (
-    <div className="min-h-screen bg-[#FFFBF5] flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="min-h-dvh bg-[#FFFBF5] flex flex-col items-center justify-center relative overflow-x-hidden overflow-y-auto px-4 py-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))]">
       {showConfetti && <Confetti />}
 
       {/* Subtle background hearts */}
@@ -493,7 +511,7 @@ function ReceiverRevealFlow({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -24 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="flex flex-col items-center text-center px-6 gap-8"
+            className="flex w-full max-w-[min(100%,24rem)] flex-col items-center text-center px-2 gap-7 sm:gap-8"
             onClick={advance}
           >
             <motion.div
@@ -522,7 +540,7 @@ function ReceiverRevealFlow({
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.7, duration: 0.5 }}
-                className="text-6xl md:text-8xl font-black tracking-tighter leading-none"
+                className="text-[clamp(3.25rem,17vw,5.5rem)] font-black tracking-tighter leading-none break-words"
                 style={{ fontFamily: "var(--font-fredoka, var(--font-inter))" }}
               >
                 {receiverName || "You"}
@@ -548,14 +566,14 @@ function ReceiverRevealFlow({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -24 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="flex flex-col items-center text-center px-6 gap-8 max-w-sm"
+            className="flex w-full max-w-[min(100%,24rem)] flex-col items-center text-center px-2 gap-7 sm:gap-8"
             onClick={advance}
           >
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.8 }}
-              className="text-3xl md:text-4xl font-black leading-tight tracking-tight"
+              className="text-[clamp(2rem,9vw,2.75rem)] font-black leading-tight tracking-tight"
             >
               Someone&apos;s been thinking about you.
             </motion.p>
@@ -588,7 +606,7 @@ function ReceiverRevealFlow({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, scale: 1.05 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col items-center text-center px-6 gap-10 max-w-md w-full"
+            className="flex w-full max-w-[min(100%,28rem)] flex-col items-center text-center px-2 gap-8 sm:gap-10"
           >
             <motion.div
               initial={{ opacity: 0, y: 32 }}
@@ -599,7 +617,7 @@ function ReceiverRevealFlow({
                 {senderName} wants to know
               </p>
               <h1
-                className="text-4xl md:text-6xl font-black leading-tight tracking-tight mb-2"
+                className="text-[clamp(2.35rem,10vw,4rem)] font-black leading-[0.98] tracking-tight mb-2"
                 style={{ fontFamily: "var(--font-fredoka, var(--font-inter))" }}
               >
                 Will you go on a date with me?
@@ -610,13 +628,13 @@ function ReceiverRevealFlow({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9, duration: 0.5 }}
-              className="flex flex-col gap-4 w-full max-w-xs"
+              className="flex flex-col gap-4 w-full max-w-sm"
             >
               <motion.button
                 whileHover={{ scale: 1.03, y: -2 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={advance}
-                className="w-full py-4 bg-black text-white font-black text-lg uppercase rounded-2xl border-[3px] border-black shadow-brutal transition-shadow hover:shadow-brutal-lg flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full min-h-[52px] py-3.5 px-4 bg-black text-white font-black text-base sm:text-lg uppercase rounded-2xl border-[3px] border-black shadow-brutal transition-shadow hover:shadow-brutal-lg flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Heart
                   className="w-5 h-5"
@@ -639,7 +657,7 @@ function ReceiverRevealFlow({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -24 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col items-center px-6 gap-6 w-full max-w-sm"
+            className="flex w-full max-w-[min(100%,24rem)] flex-col items-center gap-5 px-2 sm:gap-6"
           >
             <motion.div
               initial={{ opacity: 0 }}
@@ -650,42 +668,55 @@ function ReceiverRevealFlow({
               <p className="text-sm font-bold uppercase tracking-[0.25em] text-rose-400 mb-2">
                 Here&apos;s what {senderName} planned
               </p>
-              <h2 className="text-3xl font-black tracking-tight">for us 🗓️</h2>
+              <h2 className="text-3xl font-black tracking-tight">for us</h2>
             </motion.div>
 
-            <div className="flex flex-col gap-3 w-full">
-              {planDetails.map((detail, i) => {
-                const Icon = detail.icon;
-                return (
-                  <motion.div
-                    key={detail.label}
-                    initial={{ opacity: 0, x: -24 }}
-                    animate={{ opacity: planStep >= i ? 1 : 0.15, x: 0 }}
-                    transition={{ delay: i * 0.35 + 0.3, duration: 0.5 }}
-                    className="flex items-center gap-4 bg-white border-[3px] border-black rounded-2xl p-4 shadow-brutal"
-                  >
-                    <div
-                      className={`w-12 h-12 ${detail.bg} border-2 border-black rounded-xl flex items-center justify-center flex-shrink-0`}
+            {planDetails.length > 0 ? (
+              <div className="flex flex-col gap-3 w-full">
+                {planDetails.map((detail, i) => {
+                  const Icon = detail.icon;
+                  return (
+                    <motion.div
+                      key={detail.label}
+                      initial={{ opacity: 0, x: -24 }}
+                      animate={{ opacity: planStep >= i ? 1 : 0.15, x: 0 }}
+                      transition={{ delay: i * 0.35 + 0.3, duration: 0.5 }}
+                      className="flex w-full min-w-0 items-center gap-3 bg-white border-[3px] border-black rounded-2xl p-3 shadow-brutal sm:gap-4 sm:p-4"
                     >
-                      <Icon className="w-5 h-5" strokeWidth={2.5} />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">
-                        {detail.label}
-                      </p>
-                      <p className="font-black text-base leading-tight">
-                        {detail.value}
-                      </p>
-                      {detail.sub && (
-                        <p className="text-sm text-gray-500 font-bold mt-0.5">
-                          {detail.sub}
+                      <div
+                        className={`h-11 w-11 ${detail.bg} border-2 border-black rounded-xl flex items-center justify-center flex-shrink-0 sm:h-12 sm:w-12`}
+                      >
+                        <Icon className="w-5 h-5" strokeWidth={2.5} />
+                      </div>
+                      <div className="min-w-0 text-left">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">
+                          {detail.label}
                         </p>
-                      )}
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
+                        <p className="break-words font-black text-sm leading-tight sm:text-base">
+                          {detail.value}
+                        </p>
+                        {detail.sub && (
+                          <p className="text-sm text-gray-500 font-bold mt-0.5">
+                            {detail.sub}
+                          </p>
+                        )}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="w-full bg-white border-[3px] border-black rounded-2xl p-5 shadow-brutal text-center">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-400 mb-2">
+                  Plan needed
+                </p>
+                <p className="text-sm font-bold text-gray-500 leading-relaxed">
+                  This invite does not have date details yet. Go back to the
+                  planner and choose a time, food lane, and activity before
+                  sending it.
+                </p>
+              </div>
+            )}
 
             <motion.button
               initial={{ opacity: 0 }}
@@ -700,7 +731,7 @@ function ReceiverRevealFlow({
                   setPhase("accept");
                 }
               }}
-              className="w-full py-4 bg-black text-white font-black text-base uppercase rounded-2xl border-[3px] border-black shadow-brutal flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full min-h-[52px] py-3.5 px-4 bg-black text-white font-black text-base uppercase rounded-2xl border-[3px] border-black shadow-brutal flex items-center justify-center gap-2 cursor-pointer"
             >
               {planStep < planDetails.length - 1 ? "See more" : "Continue"}
               <ArrowRight className="w-5 h-5" strokeWidth={3} />
@@ -716,7 +747,7 @@ function ReceiverRevealFlow({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 1.05 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col items-center px-6 gap-6 w-full max-w-sm"
+            className="flex w-full max-w-[min(100%,24rem)] flex-col items-center gap-5 px-2 sm:gap-6"
           >
             <motion.div
               initial={{ opacity: 0 }}
@@ -727,7 +758,7 @@ function ReceiverRevealFlow({
               <p className="text-sm font-bold uppercase tracking-[0.25em] text-rose-400 mb-3">
                 {senderName} is waiting
               </p>
-              <h2 className="text-4xl font-black tracking-tighter leading-none">
+              <h2 className="text-[clamp(2.25rem,10vw,3rem)] font-black tracking-tighter leading-none">
                 So, are you in?
               </h2>
             </motion.div>
@@ -857,7 +888,7 @@ function ReceiverRevealFlow({
                 whileHover={{ y: -2, scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={handleAccept}
-                className="w-full py-4 bg-black text-white font-black text-lg uppercase rounded-2xl border-[3px] border-black shadow-brutal flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full min-h-[52px] py-3.5 px-4 bg-black text-white font-black text-base sm:text-lg uppercase rounded-2xl border-[3px] border-black shadow-brutal flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Check className="w-5 h-5" strokeWidth={4} />
                 I&apos;m in! Let&apos;s do this
@@ -874,7 +905,7 @@ function ReceiverRevealFlow({
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="flex flex-col items-center text-center px-6 gap-6 w-full max-w-sm"
+            className="flex w-full max-w-[min(100%,24rem)] flex-col items-center text-center gap-5 px-2 sm:gap-6"
           >
             <motion.div
               initial={{ scale: 0.5, opacity: 0 }}
@@ -896,7 +927,7 @@ function ReceiverRevealFlow({
               transition={{ delay: 0.5 }}
             >
               <h1
-                className="text-5xl font-black tracking-tighter leading-none mb-2"
+                className="text-[clamp(2.75rem,13vw,3.5rem)] font-black tracking-tighter leading-none mb-2"
                 style={{ fontFamily: "var(--font-fredoka, var(--font-inter))" }}
               >
                 It&apos;s a Date!
@@ -911,16 +942,16 @@ function ReceiverRevealFlow({
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8 }}
-                className="w-full bg-white border-[3px] border-black rounded-2xl p-4 shadow-brutal flex items-center gap-3"
+                className="w-full min-w-0 bg-white border-[3px] border-black rounded-2xl p-3 shadow-brutal flex items-center gap-3 sm:p-4"
               >
                 <div className="w-11 h-11 bg-[#dcfce7] border-2 border-black rounded-xl flex items-center justify-center flex-shrink-0">
                   <CalendarIcon className="w-5 h-5" strokeWidth={2.5} />
                 </div>
-                <div className="text-left">
+                <div className="min-w-0 text-left">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
                     Locked in
                   </p>
-                  <p className="font-black text-sm leading-tight">
+                  <p className="break-words font-black text-sm leading-tight">
                     {new Date(date + "T12:00:00").toLocaleDateString("en-US", {
                       weekday: "long",
                       month: "long",
@@ -959,15 +990,20 @@ function ReceiverRevealFlow({
               </button>
             </motion.div>
 
-            <motion.a
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.3 }}
-              href="/games"
-              className="text-sm font-bold text-gray-400 underline underline-offset-4 hover:text-black transition-colors"
+              className="rounded-2xl border-[3px] border-black bg-[#fef9c3] px-4 py-3 text-center shadow-brutal-sm"
             >
-              Play games together while you wait →
-            </motion.a>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-black/35 mb-1">
+                Next step
+              </p>
+              <p className="text-sm font-bold text-black/70">
+                Save the plan, add it to the calendar, and confirm any details
+                together.
+              </p>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1187,7 +1223,7 @@ function GenderPicker({
         {label}
       </p>
 
-      <div className="flex gap-2.5">
+      <div className="grid grid-cols-3 gap-2.5">
         {options.map((opt) => {
           const sel = value === opt.id;
           return (
@@ -1198,7 +1234,7 @@ function GenderPicker({
               whileHover={!sel ? { y: -3 } : {}}
               whileTap={{ scale: 0.96 }}
               transition={{ type: "spring", stiffness: 380, damping: 22 }}
-              className="flex-1 flex flex-col items-center gap-3 py-5 px-2 rounded-2xl border-[3px] cursor-pointer select-none relative overflow-hidden"
+              className="min-w-0 flex flex-col items-center gap-2.5 rounded-2xl border-[3px] px-1.5 py-4 cursor-pointer select-none relative overflow-hidden sm:gap-3 sm:px-2 sm:py-5"
               style={{
                 background: sel ? opt.selectedBg : opt.idleBg,
                 borderColor: sel ? opt.selectedBorder : "transparent",
@@ -1221,20 +1257,20 @@ function GenderPicker({
               )}
 
               {/* Symbol */}
-              <div className="w-10 h-10 relative z-10">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 relative z-10">
                 <opt.Symbol color={sel ? opt.selectedColor : opt.idleColor} />
               </div>
 
               {/* Text */}
               <div className="flex flex-col items-center gap-0.5 relative z-10">
                 <span
-                  className="font-black text-xs uppercase tracking-wider leading-none"
+                  className="font-black text-[11px] uppercase tracking-wide leading-none sm:text-xs sm:tracking-wider"
                   style={{ color: sel ? "#fff" : "#111" }}
                 >
                   {opt.title}
                 </span>
                 <span
-                  className="text-[9px] font-bold leading-none"
+                  className="text-[8px] font-bold leading-none sm:text-[9px]"
                   style={{ color: sel ? "rgba(255,255,255,0.75)" : "#9CA3AF" }}
                 >
                   {opt.pronoun}
@@ -1285,18 +1321,24 @@ function BentoCard({
   desc?: string;
 }) {
   return (
-    <motion.div
+    <motion.button
+      type="button"
+      aria-pressed={selected}
+      disabled={readOnly}
       onClick={!readOnly ? onClick : undefined}
       whileHover={!readOnly ? { y: -3 } : {}}
       whileTap={!readOnly ? { scale: 0.97 } : {}}
-      className={`bento-card ${bg} ${selected ? "selected" : ""} border-black rounded-2xl transition-shadow ${readOnly ? "cursor-default pointer-events-none" : "cursor-pointer"}`}
-      style={{ minHeight: "120px" }}
+      className={`bento-card ${bg} ${selected ? "selected" : ""} min-w-0 border-black rounded-2xl transition-shadow text-black ${readOnly ? "cursor-default" : "cursor-pointer"}`}
+      style={{ minHeight: "clamp(108px, 31vw, 120px)" }}
     >
-      <span className="font-black text-sm text-center w-full mt-1.5 leading-tight uppercase">
+      <span className="w-full break-words text-center text-[13px] font-black uppercase leading-tight sm:text-sm">
         {label}
       </span>
       <div className="flex-1 flex items-center justify-center py-2">
-        <Icon className="w-9 h-9 text-black opacity-90" strokeWidth={2} />
+        <Icon
+          className="h-8 w-8 text-black opacity-90 sm:h-9 sm:w-9"
+          strokeWidth={2}
+        />
       </div>
       {desc && (
         <span className="text-[9px] font-bold text-black/40 text-center w-full leading-tight mb-1">
@@ -1308,7 +1350,7 @@ function BentoCard({
       >
         <Check className="w-3.5 h-3.5 text-white" strokeWidth={4} />
       </div>
-    </motion.div>
+    </motion.button>
   );
 }
 
@@ -1353,19 +1395,19 @@ function CustomBentoCard({
       whileTap={!open ? { scale: 0.97 } : {}}
       className={`bento-card ${
         selected && !open ? "selected" : ""
-      } ${bg} border-black rounded-2xl transition-shadow cursor-pointer`}
-      style={{ minHeight: "120px" }}
+      } ${bg} col-span-2 min-w-0 border-black rounded-2xl transition-shadow cursor-pointer sm:col-span-1`}
+      style={{ minHeight: "clamp(108px, 31vw, 120px)" }}
       onClick={!open ? handleOpen : undefined}
     >
       {!open ? (
         // Collapsed — show icon + label
         <>
-          <span className="font-black text-sm text-center w-full mt-1.5 leading-tight uppercase">
+          <span className="w-full break-words text-center text-[13px] font-black uppercase leading-tight sm:text-sm">
             {selected && value ? value : "Custom"}
           </span>
           <div className="flex-1 flex items-center justify-center py-2">
             <PenLine
-              className="w-9 h-9 text-black opacity-70"
+              className="h-8 w-8 text-black opacity-70 sm:h-9 sm:w-9"
               strokeWidth={1.8}
             />
           </div>
@@ -1383,7 +1425,7 @@ function CustomBentoCard({
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="w-full h-full flex flex-col items-center justify-center gap-3 px-3 py-3"
+          className="flex h-full w-full flex-col items-center justify-center gap-2.5 px-2 py-2 sm:gap-3 sm:px-3 sm:py-3"
           onClick={(e) => e.stopPropagation()}
         >
           <input
@@ -1394,13 +1436,13 @@ function CustomBentoCard({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             maxLength={32}
-            className="w-full text-center font-black text-sm bg-white border-[2px] border-black rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1 placeholder:text-gray-300"
+            className="w-full rounded-xl border-[2px] border-black bg-white px-3 py-2 text-center text-base font-black placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1 sm:text-sm"
           />
           <div className="flex gap-2 w-full">
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="flex-1 py-1.5 bg-white border-[2px] border-black rounded-lg font-black text-xs uppercase hover:bg-gray-50 transition-colors cursor-pointer"
+              className="min-h-[36px] flex-1 rounded-lg border-[2px] border-black bg-white py-1.5 text-xs font-black uppercase transition-colors hover:bg-gray-50 cursor-pointer"
             >
               Cancel
             </button>
@@ -1408,7 +1450,7 @@ function CustomBentoCard({
               type="button"
               onClick={handleConfirm}
               disabled={!value.trim()}
-              className="flex-1 py-1.5 bg-black text-white border-[2px] border-black rounded-lg font-black text-xs uppercase disabled:bg-gray-300 disabled:border-gray-300 cursor-pointer disabled:cursor-not-allowed"
+              className="min-h-[36px] flex-1 rounded-lg border-[2px] border-black bg-black py-1.5 text-xs font-black uppercase text-white disabled:bg-gray-300 disabled:border-gray-300 cursor-pointer disabled:cursor-not-allowed"
             >
               Set
             </button>
@@ -1433,12 +1475,12 @@ function StepHeading({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="flex flex-col gap-1.5 mb-7 mt-2 max-w-2xl"
+      className="flex flex-col gap-1.5 mb-6 mt-1 max-w-2xl sm:mb-7 sm:mt-2"
     >
       <div className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center font-black text-sm shadow-brutal mb-2">
         {number}
       </div>
-      <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter leading-none">
+      <h2 className="text-[2rem] md:text-5xl font-black uppercase tracking-tighter leading-none">
         {title}
       </h2>
       {subtitle && (
@@ -1481,6 +1523,8 @@ export default function DateDropApp() {
   const [planId, setPlanId] = useState("");
   const [loadedFromHash, setLoadedFromHash] = useState(false);
   const [creatorSawYes, setCreatorSawYes] = useState(false);
+  const [planningRequestLoaded, setPlanningRequestLoaded] = useState(false);
+  const [generatedInviteUrl, setGeneratedInviteUrl] = useState("");
 
   const dates = useMemo(() => getNextWeekDays(), []);
   const today = useMemo(() => {
@@ -1544,7 +1588,17 @@ export default function DateDropApp() {
             if (data.time) setTime(data.time);
             if (data.food) setFood(data.food);
             if (data.vibe) setVibe(data.vibe);
-            if (data.accepted) {
+            const hasPlan = hasMeaningfulPlan({
+              date: data.date,
+              time: data.time,
+              food: data.food,
+              vibe: data.vibe,
+            });
+            if (!hasPlan) {
+              setPlanningRequestLoaded(true);
+              setCurrentStep(0);
+              setAppMode("creator");
+            } else if (data.accepted) {
               setAccepted(true);
               // Creator reopening their own link after receiver accepted
               // We detect this by checking if there's a "creator" param OR the data has been accepted
@@ -1557,6 +1611,7 @@ export default function DateDropApp() {
                 setAppMode("creator");
               }
             } else {
+              setPlanningRequestLoaded(false);
               setAppMode("receiver");
             }
           })
@@ -1565,8 +1620,14 @@ export default function DateDropApp() {
         try {
           const payload = decodeInvitePayload(hash);
           setLoadedFromHash(true);
-          const hasPlan = !!(payload.d || payload.t || payload.f || payload.v);
+          const hasPlan = hasMeaningfulPlan({
+            date: payload.d,
+            time: payload.t,
+            food: payload.f,
+            vibe: payload.v,
+          });
           setAppMode(hasPlan ? "receiver" : "creator");
+          setPlanningRequestLoaded(!hasPlan);
           if (payload.s) setSenderName(payload.s);
           if (payload.r) setReceiverName(payload.r);
           if (payload.d) setDate(payload.d);
@@ -1581,6 +1642,7 @@ export default function DateDropApp() {
         }
       }
     } else {
+      setPlanningRequestLoaded(false);
       if (dates.length > 0 && !date) setDate(dates[0].fullVal);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1611,11 +1673,12 @@ export default function DateDropApp() {
         apiSucceeded = true;
         setPlanId(data.id);
         const url = `${window.location.origin}${window.location.pathname}#${data.id}`;
+        setGeneratedInviteUrl(url);
         if (navigator.share) {
           try {
             await navigator.share({
               title: `DateDrop — A date for ${receiverName}`,
-              text: `Hey ${receiverName}! I planned something for us 💌`,
+              text: `Hey ${receiverName}! I planned something for us.`,
               url,
             });
           } catch {
@@ -1643,11 +1706,12 @@ export default function DateDropApp() {
         rg: receiverGender || undefined,
       };
       const url = `${window.location.origin}${window.location.pathname}#${encodeInvitePayload(payload)}`;
+      setGeneratedInviteUrl(url);
       if (navigator.share) {
         try {
           await navigator.share({
             title: `DateDrop — A date for ${receiverName}`,
-            text: `Hey ${receiverName}! I planned something for us 💌`,
+            text: `Hey ${receiverName}! I planned something for us.`,
             url,
           });
         } catch {
@@ -1684,13 +1748,42 @@ export default function DateDropApp() {
     }
   };
 
+  const planReviewItems = [
+    {
+      label: "Clear ask",
+      value:
+        senderName && receiverName
+          ? `${senderName.trim()} is inviting ${receiverName.trim()}`
+          : "Add both names",
+      ready: Boolean(senderName.trim() && receiverName.trim()),
+    },
+    {
+      label: "Protected time",
+      value:
+        date && time
+          ? `${formatDateLabel(date)} at ${time}`
+          : "Pick a day and hour",
+      ready: Boolean(date && time),
+    },
+    {
+      label: "Food lane",
+      value: food || "Choose what you might eat",
+      ready: Boolean(food),
+    },
+    {
+      label: "Shared activity",
+      value: vibe || "Choose the date mood",
+      ready: Boolean(vibe),
+    },
+  ];
+
   const renderDateTimePickers = () => (
     <>
-      <div className="mb-8 max-w-3xl">
+      <div className="mb-7 max-w-3xl sm:mb-8">
         <h3 className="font-black text-base md:text-lg mb-2.5 uppercase tracking-tight text-gray-700">
           The Day
         </h3>
-        <div className="flex items-center justify-start gap-2.5 md:gap-4 overflow-x-auto pb-4 snap-x">
+        <div className="-mx-4 flex items-center justify-start gap-2.5 overflow-x-auto px-4 pb-4 snap-x md:mx-0 md:gap-4 md:px-0">
           {dates.slice(0, 7).map((d) => (
             <div
               className="flex flex-col items-center gap-1.5 min-w-[48px] md:min-w-[60px] snap-start"
@@ -1699,14 +1792,16 @@ export default function DateDropApp() {
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
                 {d.isToday ? "Today" : d.dayName}
               </span>
-              <motion.div
+              <motion.button
+                type="button"
+                aria-pressed={date === d.fullVal}
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.95 }}
                 className={`date-circle w-12 h-12 md:w-14 md:h-14 text-lg font-black cursor-pointer ${date === d.fullVal ? "bg-[#dcfce7] shadow-[inset_0_-10px_0_0_rgba(0,0,0,0.1)] border-[3px] border-black ring-2 ring-black ring-offset-1" : "bg-white border-[3px] border-black"}`}
                 onClick={() => setDate(d.fullVal)}
               >
                 {d.dateNum}
-              </motion.div>
+              </motion.button>
             </div>
           ))}
           {(() => {
@@ -1725,7 +1820,9 @@ export default function DateDropApp() {
                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
                   {displayDay}
                 </span>
-                <motion.div
+                <motion.button
+                  type="button"
+                  aria-expanded={showCustomDate}
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   className={`cursor-pointer date-circle w-12 h-12 md:w-14 md:h-14 text-lg border-[3px] border-black flex items-center justify-center font-black ${isCustomDate || showCustomDate ? "bg-[#dcfce7] shadow-[inset_0_-10px_0_0_rgba(0,0,0,0.1)]" : "bg-white"}`}
@@ -1739,7 +1836,7 @@ export default function DateDropApp() {
                       strokeWidth={3}
                     />
                   )}
-                </motion.div>
+                </motion.button>
               </div>
             );
           })()}
@@ -1838,25 +1935,29 @@ export default function DateDropApp() {
         <h3 className="font-black text-base md:text-lg mb-2.5 uppercase tracking-tight text-gray-700">
           The Hour
         </h3>
-        <div className="flex flex-wrap gap-2.5">
+        <div className="grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap">
           {TIMES.map((t) => (
-            <motion.div
+            <motion.button
+              type="button"
+              aria-pressed={time === t}
               key={t}
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setTime(t)}
-              className={`px-4 py-2.5 border-[3px] border-black rounded-2xl font-black text-base text-center cursor-pointer transition-all ${time === t ? "bg-[#e0f2fe] shadow-[inset_0_-5px_0_0_rgba(0,0,0,0.1)] translate-y-0.5" : "bg-white shadow-brutal"}`}
+              className={`px-3 py-2.5 border-[3px] border-black rounded-2xl font-black text-sm text-center cursor-pointer transition-all sm:px-4 sm:text-base ${time === t ? "bg-[#e0f2fe] shadow-[inset_0_-5px_0_0_rgba(0,0,0,0.1)] translate-y-0.5" : "bg-white shadow-brutal"}`}
             >
               {t}
-            </motion.div>
+            </motion.button>
           ))}
           {(() => {
             const isCustomTime = time !== "" && !TIMES.includes(time);
             return (
-              <motion.div
+              <motion.button
+                type="button"
+                aria-expanded={showCustomTime}
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.95 }}
-                className={`relative px-4 py-2.5 border-[3px] border-black rounded-2xl font-black text-base text-center cursor-pointer transition-all flex items-center justify-center gap-1.5 ${isCustomTime || showCustomTime ? "bg-[#e0f2fe] shadow-[inset_0_-5px_0_0_rgba(0,0,0,0.1)] translate-y-0.5" : "bg-white shadow-brutal"}`}
+                className={`relative px-3 py-2.5 border-[3px] border-black rounded-2xl font-black text-sm text-center cursor-pointer transition-all flex items-center justify-center gap-1.5 sm:px-4 sm:text-base ${isCustomTime || showCustomTime ? "bg-[#e0f2fe] shadow-[inset_0_-5px_0_0_rgba(0,0,0,0.1)] translate-y-0.5" : "bg-white shadow-brutal"}`}
                 onClick={() => setShowCustomTime(!showCustomTime)}
               >
                 {isCustomTime ? (
@@ -1866,7 +1967,7 @@ export default function DateDropApp() {
                     <Clock className="w-4 h-4" strokeWidth={3} /> Custom
                   </>
                 )}
-              </motion.div>
+              </motion.button>
             );
           })()}
         </div>
@@ -1945,7 +2046,7 @@ export default function DateDropApp() {
             className="text-5xl font-black tracking-tighter mb-2"
             style={{ fontFamily: "var(--font-fredoka, var(--font-inter))" }}
           >
-            They said YES! 🎉
+            They said yes!
           </h1>
           <p className="text-lg font-bold text-gray-500 mb-2">
             {receiverName} accepted your invite.
@@ -2082,7 +2183,7 @@ export default function DateDropApp() {
             </div>
             <div className="px-6 pb-6 text-center">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-black/30">
-                Made with DateDrop ❤️
+                Made with DateDrop
               </p>
             </div>
           </div>
@@ -2094,7 +2195,7 @@ export default function DateDropApp() {
   // CREATOR FLOW
   return (
     <div
-      className="min-h-screen font-sans text-black flex flex-col relative bg-[#FFFBF5]"
+      className="min-h-dvh overflow-x-hidden font-sans text-black flex flex-col relative bg-[#FFFBF5]"
       style={{ zIndex: 1 }}
     >
       {/* Subtle background grid */}
@@ -2104,7 +2205,7 @@ export default function DateDropApp() {
       />
 
       {/* Header */}
-      <div className="pt-4 px-5 pb-2.5 md:px-12 md:pt-6 bg-[#FFFBF5]/90 backdrop-blur-sm z-30 flex items-center justify-between w-full mx-auto max-w-5xl sticky top-0">
+      <div className="pt-4 px-4 pb-2.5 md:px-12 md:pt-6 bg-[#FFFBF5]/90 backdrop-blur-sm z-30 flex items-center justify-between w-full mx-auto max-w-5xl sticky top-0">
         <button
           onClick={handleBack}
           className={`w-9 h-9 flex items-center justify-center border-[3px] border-black rounded-full shadow-brutal bg-white hover:-translate-y-1 transition-transform cursor-pointer ${currentStep === 0 ? "opacity-0 pointer-events-none" : ""}`}
@@ -2151,14 +2252,14 @@ export default function DateDropApp() {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="sticky top-[56px] z-20 w-full mx-auto max-w-5xl px-5 md:px-12 mb-3 mt-1"
+            className="sticky top-[56px] z-20 w-full mx-auto max-w-5xl px-4 md:px-12 mb-3 mt-1"
           >
-            <div className="w-full bg-black text-white border-[3px] border-black shadow-brutal px-3 py-2 md:px-5 md:py-3 rounded-xl flex items-center justify-between gap-2 rotate-1">
-              <div>
+            <div className="w-full bg-black text-white border-[3px] border-black shadow-brutal px-3 py-2 md:px-5 md:py-3 rounded-xl flex items-center justify-between gap-2 sm:rotate-1">
+              <div className="min-w-0">
                 <span className="text-[10px] uppercase font-black text-green-300 tracking-widest">
                   Date locked in
                 </span>
-                <p className="text-sm font-black leading-tight">
+                <p className="truncate text-sm font-black leading-tight">
                   {date
                     ? new Date(date + "T12:00:00").toLocaleDateString("en-US", {
                         weekday: "long",
@@ -2169,7 +2270,7 @@ export default function DateDropApp() {
                 </p>
               </div>
               {time && (
-                <div className="bg-green-300 text-black px-3 py-1 rounded-lg border-2 border-black font-black text-xs -rotate-1">
+                <div className="shrink-0 bg-green-300 text-black px-3 py-1 rounded-lg border-2 border-black font-black text-xs sm:-rotate-1">
                   {time}
                 </div>
               )}
@@ -2179,7 +2280,7 @@ export default function DateDropApp() {
       </AnimatePresence>
 
       {/* Main content */}
-      <div className="flex-1 px-5 pb-32 md:px-12 w-full mx-auto max-w-5xl flex flex-col relative z-10 pt-4 md:pt-6">
+      <main className="flex-1 px-4 pb-32 md:px-12 w-full mx-auto max-w-5xl flex flex-col relative z-10 pt-3 md:pt-6">
         <AnimatePresence mode="wait">
           {/* STEP 0 — Mode Selection / Names */}
           {currentStep === 0 && (
@@ -2193,8 +2294,8 @@ export default function DateDropApp() {
             >
               {/* Landing — mode not yet chosen */}
               {!appMode && (
-                <div className="flex flex-col items-center text-center py-6 md:py-10">
-                  <div className="w-full max-w-sm md:max-w-md mb-6">
+                <div className="flex flex-col items-center text-center py-4 md:py-10">
+                  <div className="w-full max-w-[18rem] sm:max-w-sm md:max-w-md mb-5 md:mb-6">
                     <img
                       src="/images/hero.png"
                       alt="Date illustration"
@@ -2202,7 +2303,7 @@ export default function DateDropApp() {
                     />
                   </div>
                   <h2
-                    className="text-4xl md:text-6xl font-black uppercase tracking-tighter leading-none mb-3"
+                    className="text-[2.5rem] md:text-6xl font-black uppercase tracking-tighter leading-none mb-3"
                     style={{
                       fontFamily: "var(--font-fredoka, var(--font-inter))",
                     }}
@@ -2214,118 +2315,79 @@ export default function DateDropApp() {
                     Watch them smile.
                   </p>
 
-                  <div className="flex flex-col sm:flex-row gap-4 w-full max-w-lg mb-10">
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full max-w-lg mb-8 sm:mb-10">
                     <motion.button
                       whileHover={{ y: -4 }}
                       whileTap={{ scale: 0.97 }}
-                      onClick={() => setAppMode("creator")}
-                      className="flex-1 group p-6 bg-white border-[3px] border-black rounded-2xl shadow-brutal text-left cursor-pointer"
+                      onClick={() => {
+                        setPlanningRequestLoaded(false);
+                        setAppMode("creator");
+                      }}
+                      className="flex-1 group p-5 sm:p-6 bg-white border-[3px] border-black rounded-2xl shadow-brutal text-left cursor-pointer"
                     >
                       <div className="w-12 h-12 bg-[#dcfce7] border-2 border-black rounded-xl flex items-center justify-center mb-4">
                         <Sparkles className="w-6 h-6" strokeWidth={2.5} />
                       </div>
                       <h3 className="text-xl font-black uppercase mb-1">
-                        I&apos;ll Plan It
+                        I&apos;ll Create the Plan
                       </h3>
                       <p className="text-sm font-medium text-gray-500 leading-snug">
-                        Create a date plan and send the link to your partner
+                        Choose the time, food, and vibe before sending the ask
                       </p>
                     </motion.button>
 
                     <motion.button
                       whileHover={{ y: -4 }}
                       whileTap={{ scale: 0.97 }}
-                      onClick={() => setAppMode("receiver")}
-                      className="flex-1 group p-6 bg-white border-[3px] border-black rounded-2xl shadow-brutal text-left cursor-pointer"
+                      onClick={() => {
+                        setPlanningRequestLoaded(false);
+                        setAppMode("receiver");
+                      }}
+                      className="flex-1 group p-5 sm:p-6 bg-white border-[3px] border-black rounded-2xl shadow-brutal text-left cursor-pointer"
                     >
                       <div className="w-12 h-12 bg-[#e0f2fe] border-2 border-black rounded-xl flex items-center justify-center mb-4">
                         <Send className="w-6 h-6" strokeWidth={2.5} />
                       </div>
                       <h3 className="text-xl font-black uppercase mb-1">
-                        Let Them Plan
+                        Ask Them to Plan
                       </h3>
                       <p className="text-sm font-medium text-gray-500 leading-snug">
-                        Send your partner a link so they can plan the date
+                        Send a simple invite so your partner can shape the date
                       </p>
                     </motion.button>
                   </div>
 
-                  {/* Games banner */}
-                  <a href="/games" className="w-full max-w-2xl block group">
-                    <motion.div
-                      whileHover={{ y: -4 }}
-                      className="relative border-[3px] border-black rounded-2xl shadow-brutal overflow-hidden bg-gradient-to-br from-[#f3e8ff] via-[#fce7f3] to-[#e0f2fe]"
-                    >
-                      <div className="absolute top-0 right-0 bg-black text-white font-black text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-bl-xl">
-                        New
-                      </div>
-                      <div className="p-6 md:p-8">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-10 h-10 bg-white border-[3px] border-black rounded-xl flex items-center justify-center shadow-brutal-sm">
-                            <Sparkles className="w-5 h-5" strokeWidth={2} />
-                          </div>
-                          <span className="font-black text-xs uppercase tracking-[0.2em] text-black/40">
-                            DateDrop Games
-                          </span>
-                        </div>
-                        <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight leading-none mb-2">
-                          Play Together
+                  <div className="w-full max-w-2xl grid gap-3 md:grid-cols-3 text-left">
+                    {[
+                      {
+                        title: "Make it easy to say yes",
+                        copy: "Give a clear plan instead of a vague maybe.",
+                        bg: "bg-[#dcfce7]",
+                      },
+                      {
+                        title: "Respect the real schedule",
+                        copy: "Pick a date and time you can actually protect.",
+                        bg: "bg-[#e0f2fe]",
+                      },
+                      {
+                        title: "Send one simple link",
+                        copy: "They see the ask first, then the plan unfolds.",
+                        bg: "bg-[#fef9c3]",
+                      },
+                    ].map((item) => (
+                      <div
+                        key={item.title}
+                        className={`${item.bg} border-[3px] border-black rounded-2xl p-4 shadow-brutal-sm`}
+                      >
+                        <h3 className="font-black text-sm uppercase tracking-tight leading-tight mb-2">
+                          {item.title}
                         </h3>
-                        <p className="text-sm font-medium text-black/50 mb-5 max-w-md">
-                          5 multiplayer games for two — Codenames, Draw & Guess,
-                          Know Me, Hangman, and Who Is It?
+                        <p className="text-xs font-bold text-black/45 leading-snug">
+                          {item.copy}
                         </p>
-                        <div className="grid grid-cols-2 gap-3">
-                          {[
-                            {
-                              href: "/games/codenames",
-                              icon: Target,
-                              label: "Codenames",
-                              sub: "Word clues",
-                            },
-                            {
-                              href: "/games/draw-guess",
-                              icon: Camera,
-                              label: "Draw & Guess",
-                              sub: "Draw & guess",
-                            },
-                            {
-                              href: "/games/know-me",
-                              icon: Heart,
-                              label: "Know Me?",
-                              sub: "Couples quiz",
-                            },
-                            {
-                              href: "/games/hangman",
-                              icon: Star,
-                              label: "Hangman",
-                              sub: "Guess the word",
-                            },
-                          ].map((g) => {
-                            const Icon = g.icon;
-                            return (
-                              <a
-                                key={g.href}
-                                href={g.href}
-                                className="bg-white border-[3px] border-black rounded-xl p-3 shadow-brutal-sm hover:-translate-y-0.5 transition-transform block"
-                              >
-                                <Icon
-                                  className="w-5 h-5 mb-1"
-                                  strokeWidth={2}
-                                />
-                                <p className="font-black text-xs uppercase tracking-tight">
-                                  {g.label}
-                                </p>
-                                <p className="text-[10px] text-black/40 font-medium">
-                                  {g.sub}
-                                </p>
-                              </a>
-                            );
-                          })}
-                        </div>
                       </div>
-                    </motion.div>
-                  </a>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -2339,9 +2401,25 @@ export default function DateDropApp() {
                         ? `Planning for ${receiverName}`
                         : "The People"
                     }
-                    subtitle="Who is this date for?"
+                    subtitle={
+                      planningRequestLoaded
+                        ? `${receiverName || "They"} asked you to shape the date. Confirm the names, then build a plan they can say yes to.`
+                        : "Add both names so the invite feels personal, not generic."
+                    }
                   />
-                  <div className="flex flex-col lg:flex-row gap-8 items-start">
+                  {planningRequestLoaded && (
+                    <div className="mb-5 max-w-2xl bg-[#e0f2fe] border-[3px] border-black rounded-2xl p-4 shadow-brutal-sm sm:mb-6">
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-black/40 mb-1">
+                        Planning request
+                      </p>
+                      <p className="text-sm font-bold text-black/65 leading-relaxed">
+                        This link is not the final invite yet. Choose the day,
+                        food lane, and activity, then send the finished plan
+                        back to {receiverName || "your partner"}.
+                      </p>
+                    </div>
+                  )}
+                  <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
                     <div className="flex-1 flex flex-col gap-5 max-w-2xl">
                       <div>
                         <label className="block text-sm font-black mb-2 ml-1 uppercase tracking-tight text-gray-600">
@@ -2401,11 +2479,12 @@ export default function DateDropApp() {
                     <Send className="w-8 h-8" strokeWidth={2.5} />
                   </div>
                   <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter leading-none mb-3">
-                    Let them plan
+                    Ask them to plan
                   </h2>
                   <p className="text-base font-medium text-gray-500 max-w-md mb-8 leading-relaxed">
-                    Enter your names, generate a link, and send it to your
-                    partner so they can plan the date.
+                    Send one gentle link when you want your partner to choose
+                    the date details. They can build the plan without guessing
+                    who it is for.
                   </p>
                   <div className="w-full flex flex-col gap-5 text-left">
                     <div>
@@ -2466,11 +2545,12 @@ export default function DateDropApp() {
                             const data = await res.json();
                             if (data.id) {
                               const url = `${window.location.origin}${window.location.pathname}#${data.id}`;
+                              setGeneratedInviteUrl(url);
                               if (navigator.share) {
                                 try {
                                   await navigator.share({
                                     title: `DateDrop — Plan a date!`,
-                                    text: `Hey ${senderName}! Plan our date using this link 💌`,
+                                    text: `Hey ${senderName}! Plan our date using this link.`,
                                     url,
                                   });
                                 } catch {
@@ -2490,6 +2570,7 @@ export default function DateDropApp() {
                               sg: senderGender || undefined,
                             };
                             const url = `${window.location.origin}${window.location.pathname}#${encodeInvitePayload(payload)}`;
+                            setGeneratedInviteUrl(url);
                             await copyToClipboard(url);
                             setLinkCopied(true);
                             setTimeout(() => setLinkCopied(false), 2000);
@@ -2512,9 +2593,21 @@ export default function DateDropApp() {
                       )}
                     </motion.button>
                     {linkCopied && (
-                      <p className="text-sm font-bold text-green-600 text-center">
-                        Link ready — send it to {senderName}!
-                      </p>
+                      <div className="rounded-2xl border-[3px] border-black bg-[#dcfce7] p-3 text-center shadow-brutal-sm">
+                        <p className="text-sm font-black text-black">
+                          Link ready. Send it to {senderName}.
+                        </p>
+                        {generatedInviteUrl && (
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(generatedInviteUrl)}
+                            className="mt-2 w-full truncate rounded-xl border-2 border-black bg-white px-3 py-2 text-xs font-bold text-black/60 transition-colors hover:bg-[#FFFBF5] cursor-pointer"
+                            title="Copy planning request link again"
+                          >
+                            {generatedInviteUrl}
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -2537,7 +2630,7 @@ export default function DateDropApp() {
                   <StepHeading
                     number={2}
                     title="Date & Time"
-                    subtitle={`When are you taking ${receiverName || "them"} out?`}
+                    subtitle={`Choose a day and hour that feels realistic for both of you.`}
                   />
                 </div>
                 <div className="hidden md:block w-40 lg:w-64 flex-shrink-0 -mt-2">
@@ -2567,7 +2660,7 @@ export default function DateDropApp() {
                   <StepHeading
                     number={3}
                     title="The Food"
-                    subtitle={`What would ${receiverName || "they"} love to eat?`}
+                    subtitle={`Pick the food lane first. You can choose the exact place later.`}
                   />
                 </div>
                 <div className="hidden md:block w-40 lg:w-64 flex-shrink-0 -mt-2">
@@ -2578,7 +2671,7 @@ export default function DateDropApp() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 md:gap-4">
                 {FOODS.map((f) => (
                   <BentoCard
                     key={f.id}
@@ -2623,7 +2716,7 @@ export default function DateDropApp() {
                   <StepHeading
                     number={4}
                     title="The Vibe"
-                    subtitle={`What do you want ${receiverName || "them"} to experience?`}
+                    subtitle="Set the emotional direction: relaxed, playful, cozy, or memorable."
                   />
                 </div>
                 <div className="hidden md:block w-40 lg:w-64 flex-shrink-0 -mt-2">
@@ -2634,7 +2727,7 @@ export default function DateDropApp() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 md:gap-4">
                 {VIBES.map((v) => (
                   <BentoCard
                     key={v.id}
@@ -2674,33 +2767,36 @@ export default function DateDropApp() {
               transition={{ duration: 0.3 }}
               className="flex-1 pb-12 pt-4"
             >
-              <div className="flex flex-col lg:flex-row gap-8 items-start w-full">
-                <div className="flex-1">
+              <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start w-full">
+                <div className="min-w-0 flex-1">
                   <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-4 mb-6"
+                    className="flex items-center gap-3 sm:gap-4 mb-6"
                   >
-                    <div className="w-16 h-16 bg-[#fef9c3] border-[3px] border-black rounded-2xl rotate-6 flex items-center justify-center shadow-brutal">
-                      <PartyPopper className="w-8 h-8" strokeWidth={2} />
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#fef9c3] border-[3px] border-black rounded-2xl rotate-6 flex flex-shrink-0 items-center justify-center shadow-brutal">
+                      <PartyPopper
+                        className="w-7 h-7 sm:w-8 sm:h-8"
+                        strokeWidth={2}
+                      />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <h2
-                        className="text-3xl md:text-5xl font-black uppercase tracking-tighter leading-none mb-1"
+                        className="text-[2rem] md:text-5xl font-black uppercase tracking-tighter leading-none mb-1"
                         style={{
                           fontFamily: "var(--font-fredoka, var(--font-inter))",
                         }}
                       >
                         All Set!
                       </h2>
-                      <p className="text-sm font-medium text-gray-500">
+                      <p className="break-words text-sm font-medium text-gray-500">
                         {receiverName} is going to love this.
                       </p>
                     </div>
                   </motion.div>
 
                   {/* Summary card */}
-                  <div className="w-full max-w-lg mb-6">
+                  <div className="w-full max-w-lg mb-6 min-w-0">
                     <div
                       ref={summaryCardRef}
                       className="rounded-3xl overflow-hidden border-[3px] border-black shadow-brutal"
@@ -2709,7 +2805,7 @@ export default function DateDropApp() {
                           "linear-gradient(165deg, #fff1f2 0%, #ffe4e6 40%, #fecdd3 100%)",
                       }}
                     >
-                      <div className="px-6 pt-6 pb-4">
+                      <div className="px-4 pt-5 pb-4 sm:px-6 sm:pt-6">
                         <div className="flex items-center justify-between mb-6">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
@@ -2719,11 +2815,11 @@ export default function DateDropApp() {
                                 strokeWidth={0}
                               />
                             </div>
-                            <span className="font-black text-base uppercase tracking-tight">
+                            <span className="font-black text-sm uppercase tracking-tight sm:text-base">
                               DateDrop
                             </span>
                           </div>
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-black/40">
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-black/40 sm:text-[10px]">
                             Date Plan
                           </span>
                         </div>
@@ -2731,7 +2827,7 @@ export default function DateDropApp() {
                           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-black/40 mb-2">
                             A date between
                           </p>
-                          <p className="text-3xl font-black uppercase tracking-tight leading-none">
+                          <p className="break-words text-2xl font-black uppercase tracking-tight leading-none sm:text-3xl">
                             {senderName}
                           </p>
                           <div className="flex items-center justify-center gap-3 my-2">
@@ -2743,12 +2839,12 @@ export default function DateDropApp() {
                             />
                             <div className="h-[3px] w-8 bg-black/20 rounded-full" />
                           </div>
-                          <p className="text-3xl font-black uppercase tracking-tight leading-none">
+                          <p className="break-words text-2xl font-black uppercase tracking-tight leading-none sm:text-3xl">
                             {receiverName}
                           </p>
                         </div>
                       </div>
-                      <div className="mx-4 mb-4 bg-white rounded-2xl border-[3px] border-black p-5 space-y-4">
+                      <div className="mx-3 mb-4 bg-white rounded-2xl border-[3px] border-black p-4 space-y-4 sm:mx-4 sm:p-5">
                         {date && (
                           <div className="flex items-start gap-4">
                             <div className="w-11 h-11 bg-[#dcfce7] border-2 border-black rounded-xl flex items-center justify-center flex-shrink-0">
@@ -2757,11 +2853,11 @@ export default function DateDropApp() {
                                 strokeWidth={2.5}
                               />
                             </div>
-                            <div>
+                            <div className="min-w-0">
                               <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-black/40 mb-0.5">
                                 When
                               </p>
-                              <p className="text-lg font-black leading-tight">
+                              <p className="break-words text-base font-black leading-tight sm:text-lg">
                                 {new Date(
                                   date + "T12:00:00",
                                 ).toLocaleDateString("en-US", {
@@ -2788,11 +2884,11 @@ export default function DateDropApp() {
                                   strokeWidth={2.5}
                                 />
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-black/40 mb-0.5">
                                   Eating
                                 </p>
-                                <p className="text-lg font-black leading-tight">
+                                <p className="break-words text-base font-black leading-tight sm:text-lg">
                                   {food}
                                 </p>
                               </div>
@@ -2806,11 +2902,11 @@ export default function DateDropApp() {
                               <div className="w-11 h-11 bg-[#e0f2fe] border-2 border-black rounded-xl flex items-center justify-center flex-shrink-0">
                                 <Star className="w-5 h-5" strokeWidth={2.5} />
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-black/40 mb-0.5">
                                   Activity
                                 </p>
-                                <p className="text-lg font-black leading-tight">
+                                <p className="break-words text-base font-black leading-tight sm:text-lg">
                                   {vibe}
                                 </p>
                               </div>
@@ -2818,17 +2914,41 @@ export default function DateDropApp() {
                           </>
                         )}
                       </div>
-                      <div className="px-6 pb-6 text-center">
-                        <a
-                          href="/games"
-                          className="text-xs font-bold uppercase tracking-[0.15em] text-black/50 hover:text-black underline underline-offset-4"
-                        >
-                          Play Games Together
-                        </a>
+                      <div className="px-4 pb-5 text-center sm:px-6 sm:pb-6">
                         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-black/30 mt-1">
-                          Made with DateDrop ❤️
+                          Ready to send with DateDrop
                         </p>
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="w-full max-w-lg mb-6 bg-white border-[3px] border-black rounded-2xl p-4 shadow-brutal-sm">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-black/35 mb-3">
+                      Before you send
+                    </p>
+                    <div className="grid gap-2">
+                      {planReviewItems.map((item) => (
+                        <div
+                          key={item.label}
+                          className="flex items-start gap-3 rounded-xl bg-[#FFFBF5] border-2 border-black/5 px-3 py-2.5"
+                        >
+                          <span
+                            className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 border-black ${item.ready ? "bg-[#dcfce7]" : "bg-white"}`}
+                          >
+                            {item.ready && (
+                              <Check className="h-3 w-3" strokeWidth={4} />
+                            )}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-black/35">
+                              {item.label}
+                            </span>
+                            <span className="block text-sm font-black leading-snug text-black">
+                              {item.value}
+                            </span>
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
@@ -2863,13 +2983,25 @@ export default function DateDropApp() {
                       <Download className="w-4 h-4" />
                     </motion.button>
                     {linkCopied && (
-                      <motion.p
+                      <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="text-sm font-bold text-green-600 text-center"
+                        className="rounded-2xl border-[3px] border-black bg-[#dcfce7] p-3 text-center shadow-brutal-sm"
                       >
-                        Link ready — now send it to {receiverName}! 💌
-                      </motion.p>
+                        <p className="text-sm font-black text-black">
+                          Link ready. Send it to {receiverName}.
+                        </p>
+                        {generatedInviteUrl && (
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(generatedInviteUrl)}
+                            className="mt-2 w-full truncate rounded-xl border-2 border-black bg-white px-3 py-2 text-xs font-bold text-black/60 transition-colors hover:bg-[#FFFBF5] cursor-pointer"
+                            title="Copy invite link again"
+                          >
+                            {generatedInviteUrl}
+                          </button>
+                        )}
+                      </motion.div>
                     )}
                   </div>
                 </div>
@@ -2889,18 +3021,18 @@ export default function DateDropApp() {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </main>
 
       {/* Sticky Next button */}
       {currentStep < totalSteps && appMode === "creator" && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-t from-[#FFFBF5] via-[#FFFBF5]/95 to-transparent pt-12 z-20 pointer-events-none">
+        <div className="fixed bottom-0 left-0 right-0 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:p-6 bg-gradient-to-t from-[#FFFBF5] via-[#FFFBF5]/95 to-transparent pt-10 md:pt-12 z-20 pointer-events-none">
           <div className="max-w-5xl mx-auto w-full flex justify-end pointer-events-auto">
             <motion.button
               whileHover={isStepComplete() ? { y: -2 } : {}}
               whileTap={isStepComplete() ? { scale: 0.97 } : {}}
               onClick={handleNext}
               disabled={!isStepComplete()}
-              className="w-full sm:w-auto min-w-[180px] py-4 px-6 bg-black text-white rounded-2xl border-[3px] border-black shadow-brutal font-black text-sm uppercase flex items-center justify-center gap-2 disabled:bg-gray-200 disabled:text-gray-400 disabled:border-gray-300 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer"
+              className="w-full sm:w-auto sm:min-w-[180px] min-h-[52px] py-3.5 px-5 sm:py-4 sm:px-6 bg-black text-white rounded-2xl border-[3px] border-black shadow-brutal font-black text-sm uppercase flex items-center justify-center gap-2 disabled:bg-gray-200 disabled:text-gray-400 disabled:border-gray-300 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer"
             >
               {currentStep === 0 && receiverName
                 ? `Plan for ${receiverName}`
@@ -2913,7 +3045,7 @@ export default function DateDropApp() {
 
       {/* Receiver link generation - footer CTA */}
       {appMode === "receiver" && !loadedFromHash && currentStep === 0 && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#FFFBF5] to-transparent pt-12 z-20 pointer-events-none">
+        <div className="fixed bottom-0 left-0 right-0 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-gradient-to-t from-[#FFFBF5] to-transparent pt-10 z-20 pointer-events-none">
           <div className="max-w-5xl mx-auto w-full flex justify-center pointer-events-auto">
             <button
               onClick={() => setAppMode(null)}

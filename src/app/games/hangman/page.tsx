@@ -171,11 +171,11 @@ export default function HangmanPage() {
 
   return (
     <div
-      className="min-h-screen bg-[var(--color-cream,#fef9ee)] flex flex-col items-center pb-20"
+      className="min-h-dvh bg-[var(--color-cream,#fef9ee)] flex flex-col items-center overflow-x-hidden pb-20"
       style={{ fontFamily: "'Inter', sans-serif" }}
     >
       {/* Top bar */}
-      <div className="w-full sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b-4 border-black px-4 md:px-8 py-3 flex items-center justify-between max-w-4xl mx-auto">
+      <div className="w-full sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b-4 border-black px-3 py-3 flex items-center justify-between gap-2 max-w-4xl mx-auto md:px-8">
         <button
           onClick={goHome}
           className="font-black text-xl flex items-center gap-2 hover:opacity-70 transition-opacity"
@@ -205,7 +205,7 @@ export default function HangmanPage() {
         </div>
       </div>
 
-      <div className="w-full max-w-2xl px-4 pt-6 flex flex-col items-center gap-6">
+      <div className="w-full max-w-2xl px-3 pt-5 flex flex-col items-center gap-5 sm:px-4 sm:pt-6 sm:gap-6">
         {/* ── MENU ──────────────────────────────── */}
         {phase === "menu" && (
           <div className="w-full flex flex-col items-center gap-8 mt-4">
@@ -549,7 +549,7 @@ export default function HangmanPage() {
           </div>
         )}
 
-        <div className="w-full max-w-2xl px-4 flex justify-center mt-2 pb-4">
+        <div className="w-full max-w-2xl px-3 sm:px-4 flex justify-center mt-2 pb-4">
           <Link
             href="/games"
             className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-black transition-colors font-bold"

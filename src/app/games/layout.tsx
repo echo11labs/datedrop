@@ -1,9 +1,11 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ArrowLeft, HeartHandshake } from "lucide-react";
 
-export default function GamesPage() {
+function GamesPaused() {
   return (
     <main className="min-h-dvh bg-[var(--color-cream,#FFFBF5)] flex flex-col items-center justify-center overflow-x-hidden p-4 sm:p-5">
       <section className="w-full max-w-xl bg-white border-[3px] border-black rounded-3xl shadow-brutal p-5 text-center sm:p-7 md:p-10">
@@ -32,4 +34,14 @@ export default function GamesPage() {
       </section>
     </main>
   );
+}
+
+export default function GamesLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+
+  if (pathname !== "/games") {
+    return <GamesPaused />;
+  }
+
+  return children;
 }

@@ -15,6 +15,17 @@
         --color-gold: #a16207;
     }
 
+    html,
+    body {
+        overflow-x: hidden;
+    }
+
+    html {
+        overflow-x: hidden;
+        text-size-adjust: 100%;
+        -webkit-text-size-adjust: 100%;
+    }
+
     body {
         background-color: var(--bg-color);
         color: var(--text-color);
@@ -24,6 +35,16 @@
         scroll-behavior: smooth;
         position: relative;
         min-height: 100vh;
+        min-height: 100dvh;
+        overflow-x: hidden;
+    }
+
+    button,
+    a,
+    input,
+    textarea,
+    select {
+        touch-action: manipulation;
     }
 
     *:focus-visible {
@@ -64,7 +85,7 @@
     }
 
     .bento-card {
-        @apply relative p-3.5 bg-white border-[3px] border-black flex flex-col items-center justify-between cursor-pointer select-none transition-all duration-200 overflow-hidden;
+        @apply relative p-3 bg-white border-[3px] border-black flex flex-col items-center justify-between cursor-pointer select-none transition-all duration-200 overflow-hidden sm:p-3.5;
     }
 
     .bento-card:hover {
@@ -101,5 +122,19 @@
 
     .input-brutal {
         @apply w-full border-[3px] border-black p-2.5 rounded-xl bg-white font-medium transition-all duration-200 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 focus:shadow-brutal;
+    }
+
+    @media (max-width: 420px) {
+        .bento-card {
+            @apply p-3;
+        }
+
+        .check-indicator {
+            @apply bottom-1.5 right-1.5 h-5 w-5 rounded-md;
+        }
+
+        .input-brutal {
+            @apply text-base;
+        }
     }
 }

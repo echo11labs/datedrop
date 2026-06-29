@@ -1,6 +1,8 @@
 const { createServer } = require("http");
 const next = require("next");
-const { Server } = require("socket.io");
+
+const gamesEnabled = process.env.ENABLE_GAMES === "true";
+const SocketIOServer = gamesEnabled ? require("socket.io").Server : null;
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
@@ -481,13 +483,15 @@ function endHangmanRound(game, outcome) {
 // ── Server ──────────────────────────────────────────────────────────────
 app.prepare().then(() => {
   const httpServer = createServer(handler);
-  const io = new Server(httpServer, {
-    cors: { origin: "*", methods: ["GET", "POST"] },
-  });
 
-  setIo(io);
+  if (gamesEnabled && SocketIOServer) {
+    const io = new SocketIOServer(httpServer, {
+      cors: { origin: "*", methods: ["GET", "POST"] },
+    });
 
-  io.on("connection", (socket) => {
+    setIo(io);
+
+    io.on("connection", (socket) => {
     console.log(`Socket connected: ${socket.id}`);
 
     // ── Codenames Events ──────────────────────────────────────────────
@@ -1126,7 +1130,10 @@ app.prepare().then(() => {
         console.log(`Hangman game ${hangmanCode}: ${playerName} disconnected`);
       }
     });
-  });
+    });
+  } else {
+    console.log("> Game service disabled. Set ENABLE_GAMES=true to enable Socket.IO games.");
+  }
 
   httpServer
     .once("error", (err) => { console.error(err); process.exit(1); })

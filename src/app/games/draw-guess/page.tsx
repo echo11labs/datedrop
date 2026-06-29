@@ -193,17 +193,17 @@ function DrawGuessGame() {
   const isDrawer = phase === "drawing" && isMyTurn;
 
   return (
-    <div className="min-h-screen bg-[var(--color-cream)] flex flex-col items-center justify-center p-4">
+    <div className="min-h-dvh bg-[var(--color-cream)] flex flex-col items-center justify-start overflow-x-hidden px-3 py-5 sm:p-4 md:justify-center">
       {error && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-xl border-[3px] border-black shadow-brutal font-bold text-sm z-50">
           {error}
         </div>
       )}
 
-      <div className="w-full max-w-2xl flex flex-col items-center gap-6">
+      <div className="w-full max-w-2xl flex flex-col items-center gap-5 sm:gap-6">
         {/* Header */}
         <div className="text-center">
-          <h1 className="font-black text-3xl sm:text-4xl uppercase tracking-tight">
+          <h1 className="font-black text-[1.75rem] sm:text-4xl uppercase tracking-tight leading-none">
             🎨 Draw & Guess
           </h1>
           {gameCode && phase !== "lobby" && (
@@ -359,7 +359,7 @@ export default function DrawGuessPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[var(--color-cream)] flex items-center justify-center">
+        <div className="min-h-dvh bg-[var(--color-cream)] flex items-center justify-center p-4">
           <div className="animate-pulse font-black text-xl uppercase">
             Loading...
           </div>
